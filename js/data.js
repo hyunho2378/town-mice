@@ -39,6 +39,8 @@ function amountToGauge(amount) {
 //  - 물이: "쪽빛 맑은 물의 고장 화천의 상징물" -> 물놀이 보상
 //  - 달이: "생명과 대지의 창조, 풍요와 장수를 상징"하는 수달, 보금자리 상징 -> 숙박 보상
 //  - 연이: "인간과 자연에게 이로움을 주는 도우미"인 연꽃 -> 토마토(농산물) 보상
+// 캐릭터 원본 색이 화천군 CI 3색과 자연히 겹친다(물이=하늘색, 천이=초록, 달이=주황).
+// 캐릭터 배경 카드도 같은 테마색을 써서 하나의 세트처럼 보이게 한다.
 const REWARDS = [
   {
     id: "waterpark",
@@ -47,6 +49,16 @@ const REWARDS = [
     reason: "7월 중순부터 운영하는 여름 시설",
     character: "muli",
     characterName: "물이",
+    theme: "blue",
+  },
+  {
+    id: "tomato",
+    name: "토마토 박스",
+    desc: "화천 토마토 특산물 박스",
+    reason: "축제 현장에서만 수령 (택배 없음)",
+    character: "cheoni",
+    characterName: "천이",
+    theme: "green",
   },
   {
     id: "stay",
@@ -55,14 +67,39 @@ const REWARDS = [
     reason: "토마토축제 기간에만 사용",
     character: "dali",
     characterName: "달이",
+    theme: "orange",
+  },
+];
+
+// 시연용 가짜 영수증 사진첩. 실제 카메라와 OCR 연동 없이 고른 즉시 자동 인식된 것처럼 채운다.
+// 1번(숙박)은 그 자체로 게이지 100(40만원)을 채워 발표에서 한 번에 보상까지 보여줄 수 있다.
+const SAMPLE_RECEIPTS = [
+  {
+    id: "sample-stay",
+    label: "화천 산천어펜션 2박",
+    category: "stay",
+    regionId: "hwacheon-hanam",
+    merchant: "화천 산천어펜션",
+    amount: 400000,
+    theme: "orange",
   },
   {
-    id: "tomato",
-    name: "토마토 박스",
-    desc: "화천 토마토 특산물 박스",
-    reason: "축제 현장에서만 수령 (택배 없음)",
-    character: "yeoni",
-    characterName: "연이",
+    id: "sample-restaurant",
+    label: "화천 시내 식당",
+    category: "restaurant",
+    regionId: "hwacheon-hanam",
+    merchant: "화천 시내 식당",
+    amount: 45000,
+    theme: "blue",
+  },
+  {
+    id: "sample-market",
+    label: "간동 농산물 직판장",
+    category: "market",
+    regionId: "gandong",
+    merchant: "간동 농산물 직판장",
+    amount: 32000,
+    theme: "green",
   },
 ];
 

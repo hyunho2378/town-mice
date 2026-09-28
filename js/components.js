@@ -141,7 +141,7 @@ function TopBar({ title, backTo }) {
   return (
     <div className="sticky top-0 z-sticky flex items-center h-14 px-2 bg-surface border-b border-border shadow-sm">
       <button
-        onClick={() => nav.goBack(backTo)}
+        onClick={() => nav.goBack(backTo || "home")}
         className="press tap-target-44 flex items-center justify-center text-text-secondary"
         aria-label="뒤로가기"
       >
@@ -157,7 +157,7 @@ function BottomNav() {
   const nav = useNav();
   const tabs = [
     { screen: "home", label: "홈", icon: "home" },
-    { screen: "receiptCategory", label: "영수증인증", icon: "receipt" },
+    { screen: "receiptUpload", label: "영수증 인증", icon: "receipt" },
     { screen: "reward", label: "여름 보상", icon: "gift" },
     FEATURES.nfcRoute ? { screen: "route", label: "화천 동선", icon: "map" } : null,
     { screen: "admin", label: "대행사 화면", icon: "chart" },
@@ -170,11 +170,11 @@ function BottomNav() {
             <button
               key={t.screen}
               onClick={() => nav.replace(t.screen)}
-              className={`press flex flex-col items-center justify-center gap-1 py-2 min-h-[44px] text-caption-sm ${
+              className={`press flex flex-col items-center justify-center gap-1.5 py-3 min-h-[64px] text-caption-md ${
                 nav.screen === t.screen ? "text-primary" : "text-text-tertiary"
               }`}
             >
-              <Icon name={t.icon} size={20} />
+              <Icon name={t.icon} size={24} />
               {t.label}
             </button>
           ))}
@@ -184,7 +184,34 @@ function BottomNav() {
   );
 }
 
-// Row: 인증현황 카드의 key-value 한 줄. 라벨은 눕고 값은 굵게, 위계를 굵기 차이로 낸다.
+// 여름 보상 캐러셀. 화천 CI 3색을 슬라이드마다 그대로 쓴다(파랑/연두/노랑). 자동 회전.
+function RewardCarousel({ rewards }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx((i) => (i + 1) % rewards.length), 3200);
+    return () => clearInterval(t);
+  }, [rewards.length]);
+  const r = rewards[idx];
+  const theme = themeClasses(r.theme);
+  return (
+    <div className={`rounded-xl shadow-md p-5 ${theme.bg} border ${theme.border} overflow-hidden`}>
+      <div key={r.id} className="slide-in flex items-center gap-4">
+        <Character name={r.character} size={72} className="shrink-0" />
+        <div className="min-w-0">
+          <div className="text-caption-md text-text-secondary">여름 화천 보상</div>
+          <div className={`text-title-md ${theme.ink}`}>{r.name}</div>
+          <div className="text-caption-md text-text-secondary mt-1">{r.desc}</div>
+        </div>
+      </div>
+      <div className="flex justify-center gap-1.5 mt-4">
+        {rewards.map((_, i) => (
+          <span key={i} className={`h-1.5 rounded-full transition-all ${i === idx ? "w-5 bg-primary" : "w-1.5 bg-border-strong"}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Row({ label, value, strong, accent }) {
   return (
     <div className="flex items-center justify-between py-1">
@@ -227,6 +254,16 @@ function ddayLabel(dateStr) {
   if (diff > 0) return "D-" + diff;
   if (diff === 0) return "D-DAY";
   return "진행 중";
+}
+
+// 보상 테마색(화천 CI 3색)을 카드에 일관되게 입힌다. 버튼과 본문 글자에는 쓰지 않는다.
+const REWARD_THEME = {
+  blue: { bg: "bg-ci-blue-subtle", border: "border-primary", ink: "text-ci-blue-ink" },
+  green: { bg: "bg-ci-green-subtle", border: "border-ci-green", ink: "text-ci-green-ink" },
+  orange: { bg: "bg-ci-orange-subtle", border: "border-ci-orange", ink: "text-ci-orange-ink" },
+};
+function themeClasses(theme) {
+  return REWARD_THEME[theme] || REWARD_THEME.blue;
 }
 
 function won(n) {

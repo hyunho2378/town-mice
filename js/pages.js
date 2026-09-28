@@ -13,7 +13,7 @@ function Splash() {
   }, []);
 
   return (
-    <div className="phone-frame flex flex-col items-center justify-center bg-primary text-on-primary">
+    <div className="phone-frame flex flex-col items-center justify-center bg-shell text-on-primary">
       <div className="text-caption-md tracking-widest opacity-90 mb-2">TOWN MICE × 더픽트</div>
       <div className="text-display-lg mb-3">화천 PASS</div>
       <div className="text-body-lg opacity-90">한 번의 인증으로, 화천을 한 바퀴!</div>
@@ -23,6 +23,8 @@ function Splash() {
 }
 
 // ---------------- Login ----------------
+// Bill Concert 틀(스플래시, 로그인)은 더픽트 핑크(shell)를 그대로 쓴다. 그 안의 화천
+// 콘텐츠(홈부터)만 화천 CI 블루(primary)를 쓴다.
 function Login() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -30,7 +32,7 @@ function Login() {
   const { login } = useAppState();
   const nav = useNav();
 
-  const canNext = step === "name" ? name.trim().length > 0 : phone.trim().length >= 9;
+  const canNext = step === "name" ? name.trim().length > 0 : phone.trim().length > 0;
 
   const handleNext = () => {
     if (step === "name") {
@@ -39,12 +41,16 @@ function Login() {
     }
     login(name, phone);
     setStep("done");
-    setTimeout(() => nav.replace("home"), 900);
+    setTimeout(() => nav.replace("home"), 700);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && canNext) handleNext();
   };
 
   if (step === "done") {
     return (
-      <div className="phone-frame flex flex-col items-center justify-center bg-primary text-on-primary px-8 text-center">
+      <div className="phone-frame flex flex-col items-center justify-center bg-shell text-on-primary px-8 text-center">
         <Icon name="check" size={48} className="mb-4" />
         <div className="text-title-lg">회원가입이 완료되었습니다.</div>
         <div className="text-body-md opacity-90 mt-2">화천 PASS로 이동합니다</div>
@@ -55,13 +61,15 @@ function Login() {
   return (
     <div className="phone-frame flex flex-col bg-surface">
       <div className="h-14 flex items-center px-2">
-        <button
-          onClick={() => (step === "phone" ? setStep("name") : nav.goBack("splash"))}
-          className="press tap-target-44 flex items-center justify-center text-text-secondary"
-          aria-label="뒤로가기"
-        >
-          <Icon name="chevronLeft" size={24} />
-        </button>
+        {step === "phone" && (
+          <button
+            onClick={() => setStep("name")}
+            className="press tap-target-44 flex items-center justify-center text-text-secondary"
+            aria-label="뒤로가기"
+          >
+            <Icon name="chevronLeft" size={24} />
+          </button>
+        )}
       </div>
       <div className="flex-1 px-6 pt-4">
         <div className="text-title-lg text-text-primary mb-1">로그인</div>
@@ -74,8 +82,9 @@ function Login() {
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="이름을 입력해주세요"
-              className="w-full bg-surface-sunken shadow-inner border border-border-strong rounded-lg px-4 py-3 text-body-lg text-text-primary placeholder:text-text-tertiary focus:border-primary outline-none mt-2"
+              className="w-full bg-surface-sunken shadow-inner border border-border-strong rounded-lg px-4 py-3 text-body-lg text-text-primary placeholder:text-text-tertiary focus:border-shell outline-none mt-2"
             />
           </div>
         ) : (
@@ -85,9 +94,10 @@ function Login() {
               autoFocus
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="휴대폰 번호를 입력해주세요"
               inputMode="numeric"
-              className="w-full bg-surface-sunken shadow-inner border border-border-strong rounded-lg px-4 py-3 text-body-lg text-text-primary placeholder:text-text-tertiary focus:border-primary outline-none mt-2"
+              className="w-full bg-surface-sunken shadow-inner border border-border-strong rounded-lg px-4 py-3 text-body-lg text-text-primary placeholder:text-text-tertiary focus:border-shell outline-none mt-2"
             />
           </div>
         )}
@@ -97,7 +107,7 @@ function Login() {
           disabled={!canNext}
           onClick={handleNext}
           className={`press w-full py-4 min-h-[44px] rounded-lg shadow-md text-label-lg text-on-primary ${
-            canNext ? "bg-primary" : "bg-text-tertiary shadow-none"
+            canNext ? "bg-shell" : "bg-text-tertiary shadow-none"
           }`}
         >
           {step === "name" ? "다음" : "시작하기"}
@@ -114,8 +124,8 @@ function Login() {
 
 // ---------------- Home ----------------
 // "겨울 영수증, 여름 화천"(허주은 제안) 구현.
-// 영수증을 올리면 보상 3개가 열리고 목표 보상을 먼저 고른다. 게이지 100을 채우면 그 보상을
-// 받고 나머지 둘은 할인가로 열린다. 여름 영수증은 다음 겨울 게이지로 이어진다.
+// 화천 CI 3색(블루 286C, 연두 376C, 노랑 152C)을 캐러셀에 그대로 쓴다. 앱 안쪽 색은 전부
+// 화천 블루(primary)이고, 핑크(shell)는 스플래시와 로그인에만 남긴다.
 function Home() {
   const nav = useNav();
   const { state, derived, setSeason } = useAppState();
@@ -123,35 +133,35 @@ function Home() {
   const isSummer = state.season === "summer";
 
   return (
-    <div className="phone-frame bg-background pb-28">
-      <div className="bg-primary text-on-primary px-5 pt-6 pb-10 rounded-b-xl shadow-md flex items-end justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-caption-sm opacity-80">Bill Concert × Town MICE</div>
-          <div className="text-title-md mt-1">{isSummer ? "2027 여름 화천 토마토축제" : EVENT.name}</div>
-          <div className="flex items-center gap-2 mt-4">
-            <div className="text-body-md opacity-90">{EVENT.ticketNo}</div>
-            <div className="bg-on-primary/20 rounded px-2.5 py-1 text-label-sm">{isSummer ? "여름" : ddayLabel(EVENT.startDate)}</div>
-          </div>
-          <div className="text-caption-md opacity-80 mt-2">{state.user?.name}님 환영합니다</div>
+    <div className="phone-frame bg-background pb-32">
+      <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+        <div>
+          <div className="text-caption-sm text-text-tertiary">Bill Concert × Town MICE</div>
+          <div className="text-title-sm text-text-primary mt-0.5">{state.user?.name}님, 안녕하세요</div>
         </div>
-        {/* 겨울은 천이(산천어), 여름은 물이(맑은 물) */}
-        <Character name={isSummer ? "muli" : "cheoni"} size={72} className="shrink-0 -mb-2" />
+        <div className="text-label-sm text-text-secondary bg-surface rounded-lg shadow-sm px-3 py-2">
+          {isSummer ? "여름 화천" : ddayLabel(EVENT.startDate)}
+        </div>
+      </div>
+
+      {/* 여름 화천 보상 캐러셀. 축제 이름 대신 실제 받을 수 있는 것 세 개를 돌린다 */}
+      <div className="mx-4 mt-2">
+        <RewardCarousel rewards={REWARDS} />
       </div>
 
       {/* 겨울 영수증 게이지 카드 */}
-      <div className="mx-4 -mt-6 bg-surface rounded-xl shadow-md p-5">
+      <div className="mx-4 mt-6 bg-surface rounded-xl shadow-md p-5">
         <div className="flex items-center justify-between mb-1">
           <div className="text-title-sm text-text-primary">겨울 영수증 게이지</div>
-          <div className="text-label-md text-primary">
+          <div className="text-title-lg text-primary">
             {gauge}
-            <span className="text-caption-md text-text-tertiary"> / {GAUGE.threshold}</span>
+            <span className="text-caption-md text-text-tertiary"> /{GAUGE.threshold}</span>
           </div>
         </div>
         <div className="text-caption-md text-text-tertiary">화천 가게 영수증 5만원마다 게이지 12.5 (가정)</div>
         <div className="text-caption-md text-text-tertiary mb-4">인증 기간: {GAUGE.validWindowLabel}</div>
 
         <div className="w-full h-3 rounded-full inset-well overflow-hidden">
-          {/* width가 아닌 transform: scaleX로 진행률을 표현한다(layout 유발 속성 금지 규칙) */}
           <div
             className="h-full w-full bg-primary rounded-full origin-left"
             style={{ transform: `scaleX(${gaugeFraction})`, transition: "transform var(--motion-base) var(--motion-standard)" }}
@@ -170,22 +180,22 @@ function Home() {
         <div className="grid grid-cols-2 gap-2 mt-4">
           <button
             onClick={() => nav.navigate("group")}
-            className="press min-h-[44px] flex items-center justify-center gap-1.5 text-label-md text-primary border border-primary rounded-lg"
+            className="press min-h-[48px] flex items-center justify-center gap-1.5 text-label-md text-primary border border-primary rounded-lg"
           >
-            <Icon name="users" size={16} />
+            <Icon name="users" size={18} />
             일행 합산
           </button>
           {rewardsOpen && !targetReward ? (
             <button
               onClick={() => nav.navigate("reward")}
-              className="press min-h-[44px] bg-primary text-on-primary rounded-lg shadow-md text-label-md"
+              className="press min-h-[48px] bg-primary text-on-primary rounded-lg shadow-md text-label-md"
             >
               목표 보상 고르기
             </button>
           ) : (
             <button
-              onClick={() => nav.navigate("receiptCategory")}
-              className="press min-h-[44px] bg-primary text-on-primary rounded-lg shadow-md text-label-md"
+              onClick={() => nav.navigate("receiptUpload")}
+              className="press min-h-[48px] bg-primary text-on-primary rounded-lg shadow-md text-label-md"
             >
               영수증 인증하기
             </button>
@@ -193,8 +203,8 @@ function Home() {
         </div>
       </div>
 
-      {/* 여름 화천 보상 */}
-      <div className="mx-4 mt-8 bg-surface rounded-xl shadow-md p-5">
+      {/* 여름 화천 보상 현황 */}
+      <div className="mx-4 mt-6 bg-surface rounded-xl shadow-md p-5">
         <div className="flex items-center justify-between">
           <div className="text-title-sm text-text-primary">여름 화천 보상</div>
           <button onClick={() => nav.navigate("reward")} className="press min-h-[44px] px-2 text-label-sm text-primary">
@@ -207,25 +217,18 @@ function Home() {
             const isTarget = targetReward && targetReward.id === r.id;
             const isBundle = achieved && !isTarget;
             const bought = state.bundlePurchased.includes(r.id);
-            const status = !rewardsOpen
-              ? "잠김"
-              : achieved
-              ? isTarget ? "받음" : bought ? "구매함" : "할인가"
-              : isTarget ? "목표" : "선택 가능";
+            const status = !rewardsOpen ? "잠김" : achieved ? (isTarget ? "받음" : bought ? "구매함" : "할인가") : isTarget ? "목표" : "선택 가능";
+            const theme = themeClasses(r.theme);
             return (
               <div
                 key={r.id}
                 className={`rounded-lg p-3 flex flex-col items-center text-center border ${
-                  isTarget
-                    ? "bg-accent-subtle border-accent shadow-sm"
-                    : isBundle
-                    ? "bg-primary-subtle border-primary"
-                    : "bg-surface-sunken shadow-inner border-transparent"
+                  isTarget || isBundle ? `${theme.bg} ${theme.border} shadow-sm` : "bg-surface-sunken shadow-inner border-transparent"
                 } ${!rewardsOpen ? "opacity-60" : ""}`}
               >
                 <Character name={r.character} size={48} />
-                <div className="text-label-sm text-text-primary mt-2">{r.name}</div>
-                <div className="text-caption-sm text-text-tertiary mt-0.5">{status}</div>
+                <div className="text-label-md text-text-primary mt-2">{r.name}</div>
+                <div className={`text-caption-sm mt-0.5 ${isTarget ? theme.ink : "text-text-tertiary"}`}>{status}</div>
               </div>
             );
           })}
@@ -237,9 +240,8 @@ function Home() {
         )}
       </div>
 
-      {/* 여름 영수증 -> 다음 겨울 (제안서 5단계) */}
       {achieved && (
-        <div className="mx-4 mt-8 bg-surface rounded-xl shadow-md p-5">
+        <div className="mx-4 mt-6 bg-surface rounded-xl shadow-md p-5">
           <div className="flex items-center justify-between mb-1">
             <div className="text-title-sm text-text-primary">여름 영수증, 다음 겨울로</div>
             <Character name="jini" size={40} />
@@ -249,34 +251,26 @@ function Home() {
               <div className="text-caption-md text-text-tertiary mb-4">여름 화천에서 쓴 영수증이 다음 겨울 산천어축제 혜택 게이지로 쌓여요 (같은 규칙, 가정)</div>
               <div className="w-full h-3 rounded-full inset-well overflow-hidden">
                 <div
-                  className="h-full w-full bg-accent rounded-full origin-left"
+                  className="h-full w-full bg-primary rounded-full origin-left"
                   style={{ transform: `scaleX(${nextWinterGauge / GAUGE.threshold})`, transition: "transform var(--motion-base) var(--motion-standard)" }}
                 />
               </div>
               <div className="flex flex-col gap-1 mt-4">
                 <Row label="여름 인증 영수증" value={won(summerAmount)} />
-                <Row label="다음 겨울 게이지" value={`${nextWinterGauge} / ${GAUGE.threshold}`} accent />
+                <Row label="다음 겨울 게이지" value={`${nextWinterGauge} /${GAUGE.threshold}`} accent />
               </div>
             </>
           ) : (
             <>
               <div className="text-caption-md text-text-tertiary mb-4">8월 초 여름 화천에서 영수증을 올리면 다음 겨울 산천어축제 혜택으로 이어져요</div>
-              {/* 시연용: 실제로는 날짜로 시즌이 바뀐다 */}
               <button
                 onClick={() => setSeason("summer")}
-                className="press w-full min-h-[44px] text-label-md text-primary border border-primary rounded-lg"
+                className="press w-full min-h-[48px] text-label-md text-primary border border-primary rounded-lg"
               >
                 시연: 8월 여름 화천으로 넘기기
               </button>
             </>
           )}
-        </div>
-      )}
-
-      {/* 제안서에 없는 권역 스탬프는 숨긴다(FEATURES.nfcRoute) */}
-      {FEATURES.nfcRoute && (
-        <div className="mx-4 mt-8 bg-surface rounded-xl shadow-md p-5">
-          <div className="text-title-sm text-text-primary mb-4">화천 권역 스탬프 ({derived.completedRegions}/3)</div>
         </div>
       )}
 
@@ -325,11 +319,13 @@ function RewardSelect() {
             const picked = pickedId === r.id;
             const isTarget = targetReward && targetReward.id === r.id;
             const bought = state.bundlePurchased.includes(r.id);
+            const theme = themeClasses(r.theme);
+            const highlighted = achieved ? isTarget : picked;
             return (
               <div
                 key={r.id}
                 className={`flex items-center gap-4 rounded-lg border p-4 ${
-                  (achieved ? isTarget : picked) ? "border-primary bg-primary-subtle shadow-md" : "border-border bg-surface-raised shadow-sm"
+                  highlighted ? `${theme.bg} ${theme.border} shadow-md` : "border-border bg-surface-raised shadow-sm"
                 } ${!rewardsOpen ? "opacity-60" : ""}`}
               >
                 <Character name={r.character} size={64} className="shrink-0" />
@@ -502,73 +498,87 @@ function ReceiptCategory() {
 }
 
 // ---------------- ReceiptUpload ----------------
+// 발표 시연용으로 실제 타이핑을 없앤다. 업로드 자리를 누르면 iOS 액션시트 스타일 모달이 뜨고,
+// 사진 보관함에서 샘플 영수증 하나를 고르면 카테고리, 가맹점, 금액, 지역이 즉시 자동으로 채워진다
+// (실제로는 더픽트 AI 인증). 카메라 버튼은 가장 빠른 데모 경로(숙박 40만원, 게이지 100)로 바로 간다.
 function ReceiptUpload() {
   const nav = useNav();
   const { state, addReceipt, derived } = useAppState();
-  const categoryId = nav.params?.categoryId || CATEGORIES[0].id;
-  const category = CATEGORIES.find((c) => c.id === categoryId) || CATEGORIES[0];
 
-  const [type, setType] = useState("");
+  const [category, setCategory] = useState(CATEGORIES[0].id);
   const [regionId, setRegionId] = useState("");
   const [amount, setAmount] = useState("");
   const [merchant, setMerchant] = useState("");
-  const [fileName, setFileName] = useState("");
   const [payer, setPayer] = useState(state.user?.name || "");
-  const [showStayNotice, setShowStayNotice] = useState(category.needsAddressProof);
+  const [fileName, setFileName] = useState("");
+  const [picker, setPicker] = useState(null); // null | "sheet" | "gallery" | "reading"
 
-  const canSubmit = type && regionId && amount && merchant && fileName;
-  const inputClass =
-    "w-full bg-surface-sunken shadow-inner border border-border-strong rounded-lg px-3 py-2.5 text-body-lg text-text-primary placeholder:text-text-tertiary focus:border-primary outline-none mt-1.5";
+  const categoryInfo = CATEGORIES.find((c) => c.id === category) || CATEGORIES[0];
+  const canSubmit = regionId && amount && merchant && fileName;
 
-  const handleFile = (e) => {
-    const f = e.target.files && e.target.files[0];
-    if (f) setFileName(f.name);
+  const applySample = (sample) => {
+    setCategory(sample.category);
+    setRegionId(sample.regionId);
+    setMerchant(sample.merchant);
+    setAmount(String(sample.amount));
+    setFileName(sample.label + ".jpg");
+    setPicker("reading");
+    setTimeout(() => setPicker(null), 700); // 로딩 짧게(발표 시연용)
   };
 
   const handleSubmit = () => {
-    addReceipt({
-      category: category.id,
-      categoryLabel: category.label,
-      type,
-      regionId,
-      amount: Number(amount),
-      merchant,
-      payer,
-    });
+    addReceipt({ category, categoryLabel: categoryInfo.label, type: "digital", regionId, amount: Number(amount), merchant, payer });
     nav.navigate("receiptStatus");
   };
 
   return (
     <div className="phone-frame bg-surface pb-32">
-      <TopBar title="영수증 인증" backTo="receiptCategory" />
+      <TopBar title="영수증 인증" backTo="home" />
 
-      {showStayNotice && (
-        <div className="fixed inset-0 z-modal bg-scrim flex items-end">
-          <div className="phone-frame !min-h-0 !shadow-none p-0">
-            <div className="bg-surface-raised rounded-t-xl shadow-lg p-6">
-              <div className="text-title-sm text-text-primary mb-2">잠깐, 추가 자료가 필요할 수 있어요</div>
-              <div className="text-body-md text-text-secondary leading-relaxed mb-5">
-                숙박 영수증은 추가 자료가 필요할 수 있어요. 실제 가맹점 주소를 확인할 수 있는 자료를 올려 주세요.
-                <br />
-                증빙자료: 실제 주소가 기입된 예약 내역, 인보이스, 거래명세서 등
-              </div>
-              <button
-                onClick={() => setShowStayNotice(false)}
-                className="press w-full min-h-[44px] bg-primary text-on-primary rounded-lg shadow-md py-3 text-label-lg"
-              >
-                확인
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="p-5 space-y-8">
+      <div className="p-5 space-y-7">
         <div>
-          <div className="text-caption-md text-text-tertiary mb-2">선택한 카테고리</div>
-          <div className="inline-block bg-primary-subtle text-primary text-label-md rounded-lg px-3 py-1.5">
-            {category.label}
+          <div className="text-title-sm text-text-primary mb-3">영수증 사진</div>
+          <button
+            onClick={() => setPicker("sheet")}
+            className="press w-full flex flex-col items-center justify-center bg-surface-sunken shadow-inner border-2 border-dashed border-border-strong rounded-lg py-8"
+          >
+            {fileName ? (
+              <>
+                <div className={`w-14 h-14 rounded-lg flex items-center justify-center ${themeClasses(SAMPLE_RECEIPTS.find((s) => s.merchant === merchant)?.theme || "blue").bg}`}>
+                  <Icon name="receipt" size={24} className="text-text-secondary" />
+                </div>
+                <div className="text-label-md text-text-primary mt-2">{fileName}</div>
+                <div className="text-caption-md text-text-tertiary mt-1">다시 선택하려면 눌러 주세요</div>
+              </>
+            ) : (
+              <>
+                <Icon name="plus" size={24} className="text-text-tertiary" />
+                <div className="text-caption-md text-text-tertiary mt-2 text-center px-4">눌러서 영수증 사진을 올려 주세요</div>
+              </>
+            )}
+          </button>
+        </div>
+
+        <div>
+          <div className="text-title-sm text-text-primary mb-3">지출 카테고리</div>
+          <div className="grid grid-cols-3 gap-2">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setCategory(c.id)}
+                className={`press min-h-[44px] rounded-lg text-label-sm border ${
+                  category === c.id ? "border-primary text-primary bg-primary-subtle" : "border-border bg-surface-raised text-text-secondary shadow-sm"
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
           </div>
+          {categoryInfo.needsAddressProof && (
+            <div className="mt-3 bg-primary-subtle rounded-lg p-3 text-caption-md text-ci-blue-ink leading-relaxed">
+              숙박 영수증은 실제 가맹점 주소가 보이는 예약 내역이나 인보이스를 함께 올려야 해요.
+            </div>
+          )}
         </div>
 
         <div>
@@ -591,27 +601,7 @@ function ReceiptUpload() {
         </div>
 
         <div>
-          <div className="text-title-sm text-text-primary mb-3">영수증 종류</div>
-          <div className="grid grid-cols-2 gap-2">
-            {RECEIPT_TYPES.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setType(t.id)}
-                className={`press min-h-[44px] rounded-lg text-label-md border ${
-                  type === t.id ? "border-primary text-primary bg-primary-subtle" : "border-border bg-surface-raised text-text-secondary shadow-sm"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <div className="text-title-sm text-text-primary mb-3">
-            방문 권역
-          </div>
-          <div className="text-caption-md text-text-tertiary -mt-2 mb-3">영수증 주소 기준 자동 판정, 오늘은 직접 선택</div>
+          <div className="text-title-sm text-text-primary mb-3">방문 권역</div>
           <div className="grid grid-cols-1 gap-2">
             {REGIONS.map((r) => (
               <button
@@ -635,7 +625,7 @@ function ReceiptUpload() {
               value={merchant}
               onChange={(e) => setMerchant(e.target.value)}
               placeholder="예: 화천전통시장"
-              className={inputClass}
+              className="w-full bg-surface-sunken shadow-inner border border-border-strong rounded-lg px-3 py-2.5 text-body-lg text-text-primary placeholder:text-text-tertiary focus:border-primary outline-none mt-1.5"
             />
           </div>
           <div>
@@ -645,20 +635,9 @@ function ReceiptUpload() {
               onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
               placeholder="예: 35000"
               inputMode="numeric"
-              className={inputClass}
+              className="w-full bg-surface-sunken shadow-inner border border-border-strong rounded-lg px-3 py-2.5 text-body-lg text-text-primary placeholder:text-text-tertiary focus:border-primary outline-none mt-1.5"
             />
           </div>
-        </div>
-
-        <div>
-          <div className="text-title-sm text-text-primary mb-3">영수증 업로드</div>
-          <label className="flex flex-col items-center justify-center bg-surface-sunken shadow-inner border-2 border-dashed border-border-strong rounded-lg py-8 cursor-pointer">
-            <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
-            <Icon name="plus" size={24} className="text-text-tertiary" />
-            <div className="text-caption-md text-text-tertiary mt-2 text-center px-4">
-              {fileName || "영수증은 잘 펼쳐서 가려지지 않게 촬영 후 업로드해 주세요"}
-            </div>
-          </label>
         </div>
       </div>
 
@@ -667,7 +646,7 @@ function ReceiptUpload() {
           <button
             disabled={!canSubmit}
             onClick={handleSubmit}
-            className={`press w-full py-4 min-h-[44px] rounded-lg text-label-lg text-on-primary ${
+            className={`press w-full py-4 min-h-[48px] rounded-lg text-label-lg text-on-primary ${
               canSubmit ? "bg-primary shadow-md" : "bg-text-tertiary"
             }`}
           >
@@ -675,6 +654,81 @@ function ReceiptUpload() {
           </button>
         </div>
       </div>
+
+      {/* 가짜 iOS 액션시트: 사진 앱 선택 UI를 최대한 그대로 흉내낸다 */}
+      {picker === "sheet" && (
+        <div className="fixed inset-0 z-modal bg-scrim flex items-end" onClick={() => setPicker(null)}>
+          <div className="phone-frame !min-h-0 !shadow-none p-0" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet-up p-3 pb-6 flex flex-col gap-2">
+              <div className="bg-surface-raised rounded-xl shadow-lg overflow-hidden">
+                <button
+                  onClick={() => setPicker("gallery")}
+                  className="press w-full min-h-[56px] flex items-center justify-center gap-2 text-label-lg text-primary border-b border-border"
+                >
+                  <Icon name="receipt" size={20} />
+                  사진 보관함에서 선택
+                </button>
+                <button
+                  onClick={() => applySample(SAMPLE_RECEIPTS[0])}
+                  className="press w-full min-h-[56px] flex items-center justify-center gap-2 text-label-lg text-primary"
+                >
+                  카메라로 촬영
+                </button>
+              </div>
+              <button
+                onClick={() => setPicker(null)}
+                className="press w-full min-h-[56px] bg-surface-raised rounded-xl shadow-lg text-label-lg text-text-primary"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 가짜 사진 보관함: 샘플 영수증 3장 중 하나를 고른다 */}
+      {picker === "gallery" && (
+        <div className="fixed inset-0 z-modal bg-scrim flex items-end">
+          <div className="phone-frame !min-h-0 !shadow-none p-0">
+            <div className="sheet-up bg-surface-raised rounded-t-xl shadow-lg p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-title-sm text-text-primary">최근 항목</div>
+                <button onClick={() => setPicker(null)} className="press tap-target-44 flex items-center justify-center text-text-tertiary" aria-label="닫기">
+                  <Icon name="x" size={20} />
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {SAMPLE_RECEIPTS.map((sr) => {
+                  const theme = themeClasses(sr.theme);
+                  return (
+                    <button
+                      key={sr.id}
+                      onClick={() => applySample(sr)}
+                      className={`press flex flex-col items-center justify-center gap-1 rounded-lg p-3 aspect-square border ${theme.bg} ${theme.border}`}
+                    >
+                      <Icon name="receipt" size={28} className={theme.ink} />
+                      <div className="text-caption-sm text-text-secondary text-center leading-tight">{sr.label}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 인식 중 스켈레톤. opacity만 애니메이션한다(레이아웃 유발 속성 금지 규칙) */}
+      {picker === "reading" && (
+        <div className="fixed inset-0 z-modal bg-scrim flex items-center justify-center">
+          <div className="bg-surface-raised rounded-xl shadow-lg p-6 flex flex-col items-center gap-3 w-64">
+            <div className="w-10 h-10 border-2 border-border border-t-primary rounded-full animate-spin" />
+            <div className="text-label-md text-text-primary">영수증을 읽고 있어요</div>
+            <div className="w-full h-2 rounded-full bg-surface-sunken overflow-hidden">
+              <div className="h-full w-full bg-primary animate-pulse" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -702,7 +756,7 @@ function ReceiptStatus() {
             </div>
             <span
               className={`text-label-sm px-2.5 py-1.5 min-h-[28px] flex items-center rounded ${
-                r.status === "인증완료" ? "bg-accent-subtle text-text-primary" : "bg-surface-sunken shadow-inner text-text-tertiary"
+                r.status === "인증완료" ? "bg-primary-subtle text-primary" : "bg-surface-sunken shadow-inner text-text-tertiary"
               }`}
             >
               {r.status === "인증완료" ? "인증완료" : "처리중"}
@@ -753,7 +807,7 @@ function RouteMap() {
                         setTimeout(() => setTapped(null), 1500);
                       }}
                       className={`press w-full flex items-center justify-between min-h-[44px] px-3 rounded-lg border ${
-                        done ? "border-accent bg-accent-subtle text-text-primary" : "border-border bg-surface-raised shadow-sm text-text-secondary"
+                        done ? "border-primary bg-primary-subtle text-primary" : "border-border bg-surface-raised shadow-sm text-text-secondary"
                       }`}
                     >
                       <span className="flex items-center gap-2 text-label-md">
@@ -838,7 +892,7 @@ function AdminDashboard() {
                 </div>
                 <div className="w-full h-2.5 rounded-full inset-well overflow-hidden">
                   <div
-                    className="h-full w-full bg-accent rounded-full origin-left"
+                    className="h-full w-full bg-primary rounded-full origin-left"
                     style={{ transform: `scaleX(${frac})`, transition: "transform var(--motion-base) var(--motion-standard)" }}
                   />
                 </div>
@@ -859,11 +913,12 @@ function AdminDashboard() {
           <div className="grid grid-cols-3 gap-2 mb-5">
             {REWARDS.map((r) => {
               const chosen = derived.targetReward && derived.targetReward.id === r.id;
+              const theme = themeClasses(r.theme);
               return (
                 <div
                   key={r.id}
                   className={`rounded-lg p-2 flex flex-col items-center text-center ${
-                    chosen ? "bg-accent-subtle shadow-sm" : "bg-surface-sunken shadow-inner"
+                    chosen ? `${theme.bg} shadow-sm` : "bg-surface-sunken shadow-inner"
                   }`}
                 >
                   <Character name={r.character} size={36} />

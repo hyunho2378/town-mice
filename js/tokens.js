@@ -17,38 +17,54 @@
 // "생화이트(#FFFFFF)를 표면에 쓰지 않는다"는 지시에 따라 surface 계열은 전부
 // 브랜드 톤이 살짝 섞인 오프화이트로 잡았다. 순수 흰색은 primary 위에 얹는
 // 텍스트(textOnPrimary)에만 남긴다(표면이 아니라 대비를 위한 글자색이라 다르다).
+// 색 체계(v3). Bill Concert 틀(스플래시, 로그인)은 더픽트 핑크를 유지하고, 그 안에 나오는
+// 지역 콘텐츠는 지역 CI 색을 쓴다. 지금 지역은 화천이라 화천군 CI 3색(화천군청 상징물,
+// Pantone 286C 블루, 376C 연두, 152C 노랑, 제공 CI 이미지에서 픽셀 추출)을 쓴다.
+// 다른 지역으로 가면 region 색 묶음만 바꾼다. 생화이트 표면은 쓰지 않는다.
 const colors = {
-  // 브랜드
-  primary: "#F04898",
-  primaryPressed: "#D63286",
-  primarySubtle: "#FDE7F0",
-  accent: "#FFE000",
-  accentSubtle: "#FFF6C2",
+  // Bill Concert 틀 (스플래시, 로그인)
+  shell: "#F04898",
+  shellPressed: "#D63286",
 
-  // 텍스트 (따뜻한 톤. 차가운 회색 대신 잉크에 핑크를 아주 살짝 섞었다)
-  textPrimary: "#241B20",
-  textSecondary: "#6E5C63",
-  textTertiary: "#9C8B92",
+  // 지역(화천) 주색: 286C 블루. 앱 안쪽 버튼, 게이지, 활성 탭
+  primary: "#004C9C",
+  primaryPressed: "#003A78",
+  primarySubtle: "#E4EDF7",
+
+  // 화천 CI 보조 2색. 캐러셀과 캐릭터 카드에만 쓴다(버튼, 글자 금지)
+  ciGreen: "#9AC244",
+  ciGreenSubtle: "#EEF6E0",
+  ciGreenInk: "#4A6614",
+  ciOrange: "#E69C2F",
+  ciOrangeSubtle: "#FCEFDA",
+  ciOrangeInk: "#8A5210",
+  ciBlueSubtle: "#E1EDF9",
+  ciBlueInk: "#004C9C",
+
+  // 텍스트 (차가운 잉크)
+  textPrimary: "#141C27",
+  textSecondary: "#465262",
+  textTertiary: "#768294",
   textOnPrimary: "#FFFFFF",
   textDanger: "#B42318",
 
-  // 표면 (생화이트 금지. 전부 오프화이트나 톤온톤)
-  background: "#F1EBEE",
-  surface: "#FCF8FA",
-  surfaceRaised: "#FFFDFE",
-  surfaceSunken: "#F3E9EE",
-  surfaceInverse: "#221A1E",
+  // 표면 (오프화이트)
+  background: "#EDF0F4",
+  surface: "#F8F9FB",
+  surfaceRaised: "#FCFCFD",
+  surfaceSunken: "#E8ECF2",
+  surfaceInverse: "#141C27",
 
-  border: "#E6D9E0",
-  borderStrong: "#C9B4BF",
-  borderFocus: "#F04898",
+  border: "#DAE0E8",
+  borderStrong: "#AEB9C8",
+  borderFocus: "#004C9C",
 
   success: "#1E9E5A",
   successSoft: "#E5F6ED",
   danger: "#DC3545",
   dangerSoft: "#FBE7E9",
 
-  scrim: "rgba(30,17,22,0.5)",
+  scrim: "rgba(12,18,28,0.5)",
 };
 
 // ---------- 타이포 ----------
@@ -93,12 +109,12 @@ const radius = {
 // sm/md/lg 세 단계 + inset(오목한 안쪽 느낌, 진행률 트랙과 입력칸 눌림에 사용).
 // 이전에는 그림자가 하나뿐이라 표면이 붙어 있는지 떠 있는지 구분이 안 됐다.
 const shadow = {
-  sm: "0 1px 2px rgba(36,20,24,0.06), 0 1px 1px rgba(36,20,24,0.04)",
-  md: "0 8px 20px rgba(36,20,24,0.12), 0 2px 6px rgba(36,20,24,0.08)",
-  lg: "0 20px 48px rgba(36,20,24,0.22), 0 8px 20px rgba(36,20,24,0.14)",
-  inset: "inset 0 1px 3px rgba(36,20,24,0.12)",
-  navTop: "0 -4px 16px rgba(36,20,24,0.06)",  // 하단 탭바가 위로 드리우는 그림자
-  frame: "0 0 40px rgba(36,20,24,0.10)",
+  sm: "0 1px 2px rgba(12,24,44,0.06), 0 1px 1px rgba(12,24,44,0.04)",
+  md: "0 8px 20px rgba(12,24,44,0.12), 0 2px 6px rgba(12,24,44,0.08)",
+  lg: "0 20px 48px rgba(12,24,44,0.22), 0 8px 20px rgba(12,24,44,0.14)",
+  inset: "inset 0 1px 3px rgba(12,24,44,0.12)",
+  navTop: "0 -4px 16px rgba(12,24,44,0.06)",  // 하단 탭바가 위로 드리우는 그림자
+  frame: "0 0 40px rgba(12,24,44,0.10)",
 };
 
 const layout = {

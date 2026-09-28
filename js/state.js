@@ -64,7 +64,7 @@ function AppStateProvider({ children }) {
           idx === 0 && r.status === "처리중" ? { ...r, status: "인증완료" } : r
         ),
       }));
-    }, 2200);
+    }, 900); // 로딩 짧게(발표 시연용)
   };
 
   const tagSpot = (spotId) =>
