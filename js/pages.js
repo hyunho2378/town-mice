@@ -510,20 +510,46 @@ function ReceiptUpload() {
   const [amount, setAmount] = useState("");
   const [merchant, setMerchant] = useState("");
   const [payer, setPayer] = useState(state.user?.name || "");
+  const [picker, setPicker] = useState(null);
   const [fileName, setFileName] = useState("");
-  const [picker, setPicker] = useState(null); // null | "sheet" | "gallery" | "reading"
+  const [selectedSample, setSelectedSample] = useState(null);
+  const [attachedSample, setAttachedSample] = useState(null);
+  const scanTimer = React.useRef(null);
+  React.useEffect(() => () => clearTimeout(scanTimer.current), []);
+  React.useEffect(() => {
+    if (!picker) return;
+    const close = (e) => {
+      if (e.key === "Escape" && picker !== "reading") setPicker(picker === "preview" ? "gallery" : null);
+      if (e.key === "Tab") {
+        const buttons = [...document.querySelectorAll('[role="dialog"] button:not(:disabled)')];
+        if (!buttons.length) { e.preventDefault(); return; }
+        const first = buttons[0], last = buttons[buttons.length - 1];
+        if (e.shiftKey && (document.activeElement === first || !buttons.includes(document.activeElement))) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && (document.activeElement === last || !buttons.includes(document.activeElement))) { e.preventDefault(); first.focus(); }
+      }
+    };
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", close);
+    return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", close); };
+  }, [picker]);
+
 
   const categoryInfo = CATEGORIES.find((c) => c.id === category) || CATEGORIES[0];
   const canSubmit = regionId && amount && merchant && fileName;
 
+  const chooseSample = (sample) => { setSelectedSample(sample); setPicker("preview"); };
   const applySample = (sample) => {
-    setCategory(sample.category);
-    setRegionId(sample.regionId);
-    setMerchant(sample.merchant);
-    setAmount(String(sample.amount));
-    setFileName(sample.label + ".jpg");
     setPicker("reading");
-    setTimeout(() => setPicker(null), 700); // 로딩 짧게(발표 시연용)
+    scanTimer.current = setTimeout(() => {
+      setCategory(sample.category);
+      setRegionId(sample.regionId);
+      setMerchant(sample.merchant);
+      setAmount(String(sample.amount));
+      setFileName(sample.label + ".svg");
+      setAttachedSample(sample);
+      setPicker(null);
+    }, receiptDesign.scanMs);
   };
 
   const handleSubmit = () => {
@@ -544,10 +570,9 @@ function ReceiptUpload() {
           >
             {fileName ? (
               <>
-                <div className={`w-14 h-14 rounded-lg flex items-center justify-center ${themeClasses(SAMPLE_RECEIPTS.find((s) => s.merchant === merchant)?.theme || "blue").bg}`}>
-                  <Icon name="receipt" size={24} className="text-text-secondary" />
-                </div>
-                <div className="text-label-md text-text-primary mt-2">{fileName}</div>
+                <div className="w-40 max-w-full shadow-md"><ReceiptImage sample={attachedSample} /></div>
+                <div className="text-label-md text-text-primary mt-3 px-3 break-all">{fileName}</div>
+                <div className="text-label-sm text-primary mt-2">인식 완료 (시연)</div>
                 <div className="text-caption-md text-text-tertiary mt-1">다시 선택하려면 눌러 주세요</div>
               </>
             ) : (
@@ -618,8 +643,8 @@ function ReceiptUpload() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
+        <div className="grid grid-cols-1 gap-4">
+          <div className="min-w-0">
             <label className="text-label-sm text-text-secondary">가맹점명</label>
             <input
               value={merchant}
@@ -657,7 +682,7 @@ function ReceiptUpload() {
 
       {/* 가짜 iOS 액션시트: 사진 앱 선택 UI를 최대한 그대로 흉내낸다 */}
       {picker === "sheet" && (
-        <div className="fixed inset-0 z-modal bg-scrim flex items-end" onClick={() => setPicker(null)}>
+        <div className="fixed inset-0 z-modal bg-scrim flex items-end" role="dialog" aria-modal="true" aria-label="사진 선택 방법" onClick={() => setPicker(null)}>
           <div className="phone-frame !min-h-0 !shadow-none p-0" onClick={(e) => e.stopPropagation()}>
             <div className="sheet-up p-3 pb-6 flex flex-col gap-2">
               <div className="bg-surface-raised rounded-xl shadow-lg overflow-hidden">
@@ -669,10 +694,10 @@ function ReceiptUpload() {
                   사진 보관함에서 선택
                 </button>
                 <button
-                  onClick={() => applySample(SAMPLE_RECEIPTS[0])}
+                  onClick={() => chooseSample(SAMPLE_RECEIPTS[0])}
                   className="press w-full min-h-[56px] flex items-center justify-center gap-2 text-label-lg text-primary"
                 >
-                  카메라로 촬영
+                  카메라로 촬영 (시연)
                 </button>
               </div>
               <button
@@ -686,45 +711,35 @@ function ReceiptUpload() {
         </div>
       )}
 
-      {/* 가짜 사진 보관함: 샘플 영수증 3장 중 하나를 고른다 */}
-      {picker === "gallery" && (
-        <div className="fixed inset-0 z-modal bg-scrim flex items-end">
-          <div className="phone-frame !min-h-0 !shadow-none p-0">
-            <div className="sheet-up bg-surface-raised rounded-t-xl shadow-lg p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-title-sm text-text-primary">최근 항목</div>
-                <button onClick={() => setPicker(null)} className="press tap-target-44 flex items-center justify-center text-text-tertiary" aria-label="닫기">
-                  <Icon name="x" size={20} />
-                </button>
+      {(picker === "gallery" || picker === "preview" || picker === "reading") && (
+        <div className="fixed inset-0 z-modal bg-scrim flex items-end" role="dialog" aria-modal="true" aria-label="영수증 선택" onClick={() => picker !== "reading" && setPicker(null)}>
+          <div className="phone-frame !min-h-0 !shadow-none receipt-sheet bg-surface-raised rounded-t-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet-up p-4">
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <button onClick={() => setPicker(picker === "preview" ? "gallery" : "sheet")} disabled={picker === "reading"} className="press tap-target-44 flex items-center justify-center text-primary" aria-label="선택 창 뒤로가기"><Icon name="chevronLeft" size={24} /></button>
+                <h2 className="text-title-sm text-text-primary">{picker === "gallery" ? "최근 영수증" : picker === "reading" ? "영수증 인식 중" : "영수증 확인"}</h2>
+                <button onClick={() => setPicker(null)} disabled={picker === "reading"} className="press tap-target-44 flex items-center justify-center text-text-secondary" aria-label="닫기"><Icon name="x" size={20} /></button>
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                {SAMPLE_RECEIPTS.map((sr) => {
-                  const theme = themeClasses(sr.theme);
-                  return (
-                    <button
-                      key={sr.id}
-                      onClick={() => applySample(sr)}
-                      className={`press flex flex-col items-center justify-center gap-1 rounded-lg p-3 aspect-square border ${theme.bg} ${theme.border}`}
-                    >
-                      <Icon name="receipt" size={28} className={theme.ink} />
-                      <div className="text-caption-sm text-text-secondary text-center leading-tight">{sr.label}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 인식 중 스켈레톤. opacity만 애니메이션한다(레이아웃 유발 속성 금지 규칙) */}
-      {picker === "reading" && (
-        <div className="fixed inset-0 z-modal bg-scrim flex items-center justify-center">
-          <div className="bg-surface-raised rounded-xl shadow-lg p-6 flex flex-col items-center gap-3 w-64">
-            <div className="w-10 h-10 border-2 border-border border-t-primary rounded-full animate-spin" />
-            <div className="text-label-md text-text-primary">영수증을 읽고 있어요</div>
-            <div className="w-full h-2 rounded-full bg-surface-sunken overflow-hidden">
-              <div className="h-full w-full bg-primary animate-pulse" />
+              {picker === "gallery" ? <>
+                <p className="text-caption-md text-text-secondary mb-4">시연용 영수증을 선택해 주세요. 실제 결제가 아닙니다.</p>
+                <div className="receipt-gallery gap-3">
+                  {SAMPLE_RECEIPTS.map((sr) => <button key={sr.id} onClick={() => chooseSample(sr)} className="press min-w-0 p-2 bg-surface-sunken rounded-lg border border-border text-left">
+                    <ReceiptImage sample={sr} className="shadow-sm" />
+                    <div className="text-label-sm text-text-primary mt-3 break-words">{sr.label}</div>
+                    <div className="text-label-md text-primary mt-1">{sr.amount.toLocaleString('ko-KR')}원</div>
+                  </button>)}
+                </div>
+              </> : <>
+                <div className="receipt-preview shadow-md"><ReceiptImage sample={selectedSample} /></div>
+                {picker === "reading" ? <div className="py-4 text-center" role="status" aria-live="polite">
+                  <div className="mx-auto w-8 h-8 border-2 border-border border-t-primary rounded-full animate-spin" />
+                  <p className="text-label-md text-primary mt-3">가맹점, 결제일, 금액을 확인하고 있어요</p>
+                  <p className="text-caption-md text-text-secondary mt-1">샘플 데이터 기반 인식 시뮬레이션</p>
+                </div> : <>
+                  <p className="text-caption-md text-text-secondary text-center my-4">실제 OCR 연결 전 시연입니다. 선택한 샘플의 정보가 채워집니다.</p>
+                  <button autoFocus onClick={() => applySample(selectedSample)} className="press w-full min-h-[48px] rounded-lg bg-primary text-on-primary text-label-lg py-3">이 영수증 첨부하고 인식하기</button>
+                </>}
+              </>}
             </div>
           </div>
         </div>

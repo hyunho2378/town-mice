@@ -8,8 +8,16 @@ function NavProvider({ children }) {
 
   const navigate = (screen, params = {}) => setStack((s) => [...s, { screen, params }]);
   const replace = (screen, params = {}) => setStack(() => [{ screen, params }]);
-  const goBack = (fallback) =>
-    setStack((s) => (s.length > 1 ? s.slice(0, -1) : fallback ? [{ screen: fallback, params: {} }] : s));
+  // fallback이 오면(TopBar는 항상 넘긴다) 스택 깊이와 상관없이 그 화면으로 바로 간다.
+  // 이전 버전은 스택이 3단 이상 깊어지면(홈 -> 영수증 인증 -> 인증현황) 뒤로가기를 한 번
+  // 눌러도 지정한 backTo가 아니라 스택 한 칸만 줄어들어, 두 번 눌러야 홈으로 가는 오류가 있었다.
+  const goBack = (fallback) => {
+    if (fallback) {
+      setStack(() => [{ screen: fallback, params: {} }]);
+      return;
+    }
+    setStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
+  };
 
   const current = stack[stack.length - 1];
 

@@ -155,3 +155,6 @@ const zIndex = {
   modal: 30,
   toast: 40,
 };
+
+// 시연용 감열지 영수증 디자인
+const receiptDesign = { paper: "#F8F4E9", ink: "#242C35", muted: "#646B71", rule: "#C5C1B7", stamp: "#A23F32", width: 400, height: 680, padding: 32, body: 14, small: 11, title: 24, total: 30, scanMs: 1000 };
