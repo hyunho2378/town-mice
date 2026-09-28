@@ -50,11 +50,19 @@
           },
           extend: {
             colors: {
+              shell: colors.shell,
+              "shell-pressed": colors.shellPressed,
               primary: colors.primary,
               "primary-pressed": colors.primaryPressed,
               "primary-subtle": colors.primarySubtle,
-              accent: colors.accent,
-              "accent-subtle": colors.accentSubtle,
+              "ci-green": colors.ciGreen,
+              "ci-green-subtle": colors.ciGreenSubtle,
+              "ci-green-ink": colors.ciGreenInk,
+              "ci-orange": colors.ciOrange,
+              "ci-orange-subtle": colors.ciOrangeSubtle,
+              "ci-orange-ink": colors.ciOrangeInk,
+              "ci-blue-subtle": colors.ciBlueSubtle,
+              "ci-blue-ink": colors.ciBlueInk,
               "text-primary": colors.textPrimary,
               "text-secondary": colors.textSecondary,
               "text-tertiary": colors.textTertiary,
@@ -112,6 +120,7 @@
       document.documentElement.style.setProperty("--color-background", colors.background);
       document.documentElement.style.setProperty("--color-border", colors.border);
       document.documentElement.style.setProperty("--color-primary", colors.primary);
+      document.documentElement.style.setProperty("--color-shell", colors.shell);
       document.documentElement.style.setProperty("--color-surface-sunken", colors.surfaceSunken);
       document.documentElement.style.setProperty("--shadow-frame", shadow.frame);
       document.documentElement.style.setProperty("--shadow-inset", shadow.inset);
@@ -153,6 +162,12 @@
         box-shadow: var(--shadow-inset);
         background: var(--color-surface-sunken);
       }
+
+      /* 캐러셀, 로딩: opacity와 transform만 쓴다 */
+      @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+      .slide-in { animation: slideIn var(--motion-base) var(--motion-standard); }
+      @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+      .sheet-up { animation: sheetUp 240ms var(--motion-standard); }
 
       /* 키보드 포커스 가시성 */
       a:focus-visible, button:focus-visible, input:focus-visible {
