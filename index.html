@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+    <title>화천 Town MICE PASS</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "pink-brand": "#F04898",
+              "yellow-brand": "#FFE000",
+            },
+            fontFamily: {
+              sans: ["Pretendard Variable", "Pretendard", "-apple-system", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      html, body, #root { height: 100%; background: #ececec; }
+      body { font-family: "Pretendard Variable", "Pretendard", -apple-system, system-ui, sans-serif; }
+      .phone-frame {
+        max-width: 430px;
+        margin: 0 auto;
+        min-height: 100vh;
+        background: #fff;
+        box-shadow: 0 0 40px rgba(0,0,0,0.08);
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script>
+      // 빌드 도구 없이 브라우저에서 직접 JSX를 읽어 실행한다.
+      // 각 파일을 개별 eval하면 const/let 최상위 선언이 파일 간에 공유되지 않아서
+      // 전부 합친 뒤 한 번에 eval한다. 순서 중요: data -> state -> components -> pages -> app
+      (async function boot() {
+        const files = ["./js/data.js", "./js/state.js", "./js/components.js", "./js/pages.js", "./js/app.js"];
+        try {
+          const parts = [];
+          for (const f of files) {
+            const res = await fetch(f + "?t=" + Date.now());
+            if (!res.ok) throw new Error("파일을 불러오지 못했습니다: " + f);
+            const code = await res.text();
+            const transformed = Babel.transform(code, { presets: ["react"], filename: f }).code;
+            parts.push("// ===== " + f + " =====\n" + transformed);
+          }
+          const combined = parts.join("\n\n");
+          (0, eval)(combined);
+        } catch (e) {
+          console.error("실행 오류:", e);
+          document.getElementById("root").innerHTML =
+            '<pre style="color:red;padding:16px;white-space:pre-wrap">' + (e.stack || e.message) + "</pre>";
+        }
+      })();
+    </script>
+  </body>
+</html>
