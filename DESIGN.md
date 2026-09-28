@@ -124,3 +124,11 @@ fullstack-product-setup 스킬과 UI_DESIGN_SYSTEM_PLAYBOOK.md(온새마루 DS v
 ## 9. 미룬 것
 
 IA.md, COMPONENTS.md, PATTERNS.md, ROUTES.md, PROGRESS.md, SESSION_HEADER.md는 만들지 않았다. 화면이 8개뿐이고 발표가 임박해 문서화보다 동작하는 프로토타입과 규칙 준수를 우선했다.
+
+## 10. 기능 범위 (v3, 2026.9.28)
+
+기능 기준 원문은 "겨울 영수증, 여름 화천.pdf"다. 제안서의 "스케이트보드 MVP: 보상 선택과 게이지 두 가지만 추가"에 맞춰, 제안서에 없는 NFC 동선과 권역 스탬프는 `FEATURES.nfcRoute = false`로 숨겼다(코드 유지). 하단 탭은 홈, 영수증인증, 여름 보상, 대행사 화면 네 개다.
+
+하단 탭바가 위로 드리우는 그림자는 `shadow.navTop` 토큰(`shadow-nav`)으로 옮겼다. 이전에는 임의값 rgba가 컴포넌트에 직접 적혀 있었다.
+
+캐릭터 매칭(연구팀 매칭, 화천군 공식 지정 아님): 천이 겨울 축제, 물이 여름과 물놀이 보상, 달이 숙박 보상과 가게 안내물, 연이 토마토 보상, 산이 보상 안내, 진이 다음 겨울 연결.
