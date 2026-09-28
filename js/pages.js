@@ -113,27 +113,29 @@ function Login() {
 }
 
 // ---------------- Home ----------------
-// "겨울 영수증, 여름 화천"(허주은 제안) 구현. 겨울에 쓴 영수증이 게이지로 쌓이고,
-// 게이지 100을 채우면 여름 보상 3개 중 하나를 고른다.
+// "겨울 영수증, 여름 화천"(허주은 제안) 구현.
+// 영수증을 올리면 보상 3개가 열리고 목표 보상을 먼저 고른다. 게이지 100을 채우면 그 보상을
+// 받고 나머지 둘은 할인가로 열린다. 여름 영수증은 다음 겨울 게이지로 이어진다.
 function Home() {
   const nav = useNav();
-  const { state, derived } = useAppState();
-  const { totalVerifiedAmount, gauge, gaugeFraction, rewardUnlocked, amountToThreshold, selectedReward, completedRegions, regionProgress } = derived;
+  const { state, derived, setSeason } = useAppState();
+  const { winterAmount, summerAmount, gauge, gaugeFraction, gaugeFull, amountToThreshold, rewardsOpen, targetReward, achieved, nextWinterGauge, payers } = derived;
+  const isSummer = state.season === "summer";
 
   return (
     <div className="phone-frame bg-background pb-28">
       <div className="bg-primary text-on-primary px-5 pt-6 pb-10 rounded-b-xl shadow-md flex items-end justify-between gap-3">
         <div className="min-w-0">
           <div className="text-caption-sm opacity-80">Bill Concert × Town MICE</div>
-          <div className="text-title-md mt-1">{EVENT.name}</div>
+          <div className="text-title-md mt-1">{isSummer ? "2027 여름 화천 토마토축제" : EVENT.name}</div>
           <div className="flex items-center gap-2 mt-4">
             <div className="text-body-md opacity-90">{EVENT.ticketNo}</div>
-            <div className="bg-on-primary/20 rounded px-2.5 py-1 text-label-sm">{EVENT.dday}</div>
+            <div className="bg-on-primary/20 rounded px-2.5 py-1 text-label-sm">{isSummer ? "여름" : ddayLabel(EVENT.startDate)}</div>
           </div>
           <div className="text-caption-md opacity-80 mt-2">{state.user?.name}님 환영합니다</div>
         </div>
-        {/* 천이(산천어): 겨울 산천어축제 단계를 상징 */}
-        <Character name="cheoni" size={72} className="shrink-0 -mb-2" />
+        {/* 겨울은 천이(산천어), 여름은 물이(맑은 물) */}
+        <Character name={isSummer ? "muli" : "cheoni"} size={72} className="shrink-0 -mb-2" />
       </div>
 
       {/* 겨울 영수증 게이지 카드 */}
@@ -145,7 +147,8 @@ function Home() {
             <span className="text-caption-md text-text-tertiary"> / {GAUGE.threshold}</span>
           </div>
         </div>
-        <div className="text-caption-md text-text-tertiary mb-4">화천 가게 영수증 5만원마다 게이지 12.5 (가정)</div>
+        <div className="text-caption-md text-text-tertiary">화천 가게 영수증 5만원마다 게이지 12.5 (가정)</div>
+        <div className="text-caption-md text-text-tertiary mb-4">인증 기간: {GAUGE.validWindowLabel}</div>
 
         <div className="w-full h-3 rounded-full inset-well overflow-hidden">
           {/* width가 아닌 transform: scaleX로 진행률을 표현한다(layout 유발 속성 금지 규칙) */}
@@ -156,89 +159,126 @@ function Home() {
         </div>
 
         <div className="flex flex-col gap-1 mt-4">
-          <Row label="인증한 영수증 합계" value={won(totalVerifiedAmount)} strong />
+          <Row label={`일행 ${payers.length}명 합산 영수증`} value={won(winterAmount)} strong />
           <Row
-            label={selectedReward ? "받은 여름 보상" : rewardUnlocked ? "여름 보상 열림" : "게이지 100까지 남은 금액"}
-            value={selectedReward ? selectedReward.name : rewardUnlocked ? "선택 가능" : won(amountToThreshold)}
+            label={achieved ? "받은 여름 보상" : targetReward ? `${targetReward.name}까지 남은 금액` : "목표 보상"}
+            value={achieved ? targetReward.name : targetReward ? won(amountToThreshold) : rewardsOpen ? "고르기 전" : "영수증을 올리면 열려요"}
             accent
           />
         </div>
 
-        {rewardUnlocked && !selectedReward ? (
+        <div className="grid grid-cols-2 gap-2 mt-4">
           <button
-            onClick={() => nav.navigate("reward")}
-            className="press w-full mt-4 min-h-[44px] bg-primary text-on-primary rounded-lg shadow-md text-label-lg"
+            onClick={() => nav.navigate("group")}
+            className="press min-h-[44px] flex items-center justify-center gap-1.5 text-label-md text-primary border border-primary rounded-lg"
           >
-            여름 보상 고르기
+            <Icon name="users" size={16} />
+            일행 합산
           </button>
-        ) : (
-          <button
-            onClick={() => nav.navigate("receiptCategory")}
-            className="press w-full mt-4 min-h-[44px] bg-primary text-on-primary rounded-lg shadow-md text-label-lg"
-          >
-            영수증 인증하기
-          </button>
-        )}
+          {rewardsOpen && !targetReward ? (
+            <button
+              onClick={() => nav.navigate("reward")}
+              className="press min-h-[44px] bg-primary text-on-primary rounded-lg shadow-md text-label-md"
+            >
+              목표 보상 고르기
+            </button>
+          ) : (
+            <button
+              onClick={() => nav.navigate("receiptCategory")}
+              className="press min-h-[44px] bg-primary text-on-primary rounded-lg shadow-md text-label-md"
+            >
+              영수증 인증하기
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* 여름 화천 보상 미리보기. 게이지가 차기 전에도 무엇을 받는지 보여줘서 동기를 만든다 */}
+      {/* 여름 화천 보상 */}
       <div className="mx-4 mt-8 bg-surface rounded-xl shadow-md p-5">
-        <div className="text-title-sm text-text-primary">여름 화천 보상</div>
-        <div className="text-caption-md text-text-tertiary mt-1 mb-4">{GAUGE.rewardWindowLabel}</div>
+        <div className="flex items-center justify-between">
+          <div className="text-title-sm text-text-primary">여름 화천 보상</div>
+          <button onClick={() => nav.navigate("reward")} className="press min-h-[44px] px-2 text-label-sm text-primary">
+            자세히
+          </button>
+        </div>
+        <div className="text-caption-md text-text-tertiary mb-4">{GAUGE.rewardWindowLabel}</div>
         <div className="grid grid-cols-3 gap-3">
           {REWARDS.map((r) => {
-            const isChosen = selectedReward && selectedReward.id === r.id;
-            const isBundle = selectedReward && selectedReward.id !== r.id;
+            const isTarget = targetReward && targetReward.id === r.id;
+            const isBundle = achieved && !isTarget;
+            const bought = state.bundlePurchased.includes(r.id);
+            const status = !rewardsOpen
+              ? "잠김"
+              : achieved
+              ? isTarget ? "받음" : bought ? "구매함" : "할인가"
+              : isTarget ? "목표" : "선택 가능";
             return (
               <div
                 key={r.id}
                 className={`rounded-lg p-3 flex flex-col items-center text-center border ${
-                  isChosen
+                  isTarget
                     ? "bg-accent-subtle border-accent shadow-sm"
                     : isBundle
                     ? "bg-primary-subtle border-primary"
                     : "bg-surface-sunken shadow-inner border-transparent"
-                } ${!rewardUnlocked && !selectedReward ? "opacity-60" : ""}`}
+                } ${!rewardsOpen ? "opacity-60" : ""}`}
               >
                 <Character name={r.character} size={48} />
                 <div className="text-label-sm text-text-primary mt-2">{r.name}</div>
-                <div className="text-caption-sm text-text-tertiary mt-0.5">
-                  {isChosen ? "받음" : isBundle ? "할인가" : rewardUnlocked ? "선택 가능" : "잠김"}
-                </div>
+                <div className="text-caption-sm text-text-tertiary mt-0.5">{status}</div>
               </div>
             );
           })}
         </div>
-        {selectedReward && (
+        {achieved && (
           <div className="mt-4 bg-surface-sunken shadow-inner rounded-lg p-3 text-caption-md text-text-secondary leading-relaxed">
-            {withObjectParticle(selectedReward.name)} 받았어요. 나머지 두 보상은 묶음 할인가로 열려서 여름에 함께 쓰면 1박 코스가 돼요.
+            {withObjectParticle(targetReward.name)} 받았어요. 나머지 두 보상은 묶음 할인가로 열려서 여름에 함께 쓰면 1박 코스가 돼요.
           </div>
         )}
       </div>
 
-      {/* 화천 권역 스탬프. 동해사이형 진행 로직을 이식했다 */}
-      <div className="mx-4 mt-8 bg-surface rounded-xl shadow-md p-5">
-        <div className="text-title-sm text-text-primary mb-4">화천 권역 스탬프 ({completedRegions}/3)</div>
-        <div className="grid grid-cols-3 gap-3">
-          {regionProgress.map((r) => (
-            <div
-              key={r.id}
-              className={`rounded-lg p-3 text-center border ${
-                r.done ? "bg-accent-subtle border-accent shadow-sm" : "bg-surface-sunken shadow-inner border-transparent"
-              }`}
-            >
-              <Icon name={r.done ? "award" : "square"} size={20} className={`mx-auto ${r.done ? "text-primary" : "text-text-tertiary"}`} />
-              <div className="text-label-sm text-text-primary mt-1">{r.name}</div>
-            </div>
-          ))}
+      {/* 여름 영수증 -> 다음 겨울 (제안서 5단계) */}
+      {achieved && (
+        <div className="mx-4 mt-8 bg-surface rounded-xl shadow-md p-5">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-title-sm text-text-primary">여름 영수증, 다음 겨울로</div>
+            <Character name="jini" size={40} />
+          </div>
+          {isSummer ? (
+            <>
+              <div className="text-caption-md text-text-tertiary mb-4">여름 화천에서 쓴 영수증이 다음 겨울 산천어축제 혜택 게이지로 쌓여요 (같은 규칙, 가정)</div>
+              <div className="w-full h-3 rounded-full inset-well overflow-hidden">
+                <div
+                  className="h-full w-full bg-accent rounded-full origin-left"
+                  style={{ transform: `scaleX(${nextWinterGauge / GAUGE.threshold})`, transition: "transform var(--motion-base) var(--motion-standard)" }}
+                />
+              </div>
+              <div className="flex flex-col gap-1 mt-4">
+                <Row label="여름 인증 영수증" value={won(summerAmount)} />
+                <Row label="다음 겨울 게이지" value={`${nextWinterGauge} / ${GAUGE.threshold}`} accent />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-caption-md text-text-tertiary mb-4">8월 초 여름 화천에서 영수증을 올리면 다음 겨울 산천어축제 혜택으로 이어져요</div>
+              {/* 시연용: 실제로는 날짜로 시즌이 바뀐다 */}
+              <button
+                onClick={() => setSeason("summer")}
+                className="press w-full min-h-[44px] text-label-md text-primary border border-primary rounded-lg"
+              >
+                시연: 8월 여름 화천으로 넘기기
+              </button>
+            </>
+          )}
         </div>
-        <button
-          onClick={() => nav.navigate("route")}
-          className="press w-full mt-4 min-h-[44px] text-label-md text-primary border border-primary rounded-lg"
-        >
-          화천 동선 보러가기
-        </button>
-      </div>
+      )}
+
+      {/* 제안서에 없는 권역 스탬프는 숨긴다(FEATURES.nfcRoute) */}
+      {FEATURES.nfcRoute && (
+        <div className="mx-4 mt-8 bg-surface rounded-xl shadow-md p-5">
+          <div className="text-title-sm text-text-primary mb-4">화천 권역 스탬프 ({derived.completedRegions}/3)</div>
+        </div>
+      )}
 
       <BottomNav />
     </div>
@@ -246,72 +286,184 @@ function Home() {
 }
 
 // ---------------- RewardSelect ----------------
-// 게이지 100 달성 후 여름 보상 3개 중 하나를 고른다. 고른 보상은 받고, 나머지 둘은
-// 묶음 할인가로 열린다(제안서 원문: "보상 하나를 달성하면 나머지 두 개를 할인가로 구매").
+// 게이지가 차기 전: 목표 보상을 고른다(바꿀 수 있음). 게이지 100 달성 후: 목표 보상은 받고,
+// 나머지 둘은 묶음 할인가로 구매할 수 있다. 할인 금액은 제안서에 없어 "확정 전"으로 둔다.
 function RewardSelect() {
   const nav = useNav();
-  const { selectReward, derived } = useAppState();
-  const [pickedId, setPickedId] = useState(null);
+  const { state, selectTargetReward, buyBundle, derived } = useAppState();
+  const { rewardsOpen, targetReward, achieved, amountToThreshold, gauge } = derived;
+  const [pickedId, setPickedId] = useState(state.targetRewardId);
 
   const handleConfirm = () => {
     if (!pickedId) return;
-    selectReward(pickedId);
+    selectTargetReward(pickedId);
     nav.replace("home");
   };
 
   return (
     <div className="phone-frame bg-surface pb-32">
-      <TopBar title="여름 보상 고르기" backTo="home" />
+      <TopBar title="여름 보상" backTo="home" />
       <div className="p-5">
         <div className="flex items-center gap-3 mb-6">
           <Character name="sani" size={56} />
           <div>
-            <div className="text-title-lg text-text-primary">게이지 100 달성</div>
-            <div className="text-caption-md text-text-tertiary mt-1">여름 보상 하나를 고르면 나머지 둘은 할인가로 열려요</div>
+            <div className="text-title-lg text-text-primary">
+              {achieved ? "게이지 100 달성" : rewardsOpen ? "목표 보상을 고르세요" : "아직 잠겨 있어요"}
+            </div>
+            <div className="text-caption-md text-text-tertiary mt-1">
+              {achieved
+                ? "목표 보상을 받았어요. 나머지 둘은 할인가로 살 수 있어요"
+                : rewardsOpen
+                ? `지금 게이지 ${gauge}. 고른 보상을 향해 게이지가 쌓여요`
+                : "화천 가게 영수증을 한 장 올리면 세 보상이 열려요"}
+            </div>
           </div>
         </div>
 
         <div className="flex flex-col gap-3">
           {REWARDS.map((r) => {
             const picked = pickedId === r.id;
+            const isTarget = targetReward && targetReward.id === r.id;
+            const bought = state.bundlePurchased.includes(r.id);
             return (
-              <button
+              <div
                 key={r.id}
-                onClick={() => setPickedId(r.id)}
-                className={`press w-full flex items-center gap-4 text-left rounded-lg border p-4 min-h-[44px] ${
-                  picked ? "border-primary bg-primary-subtle shadow-md" : "border-border bg-surface-raised shadow-sm"
-                }`}
-                aria-pressed={picked}
+                className={`flex items-center gap-4 rounded-lg border p-4 ${
+                  (achieved ? isTarget : picked) ? "border-primary bg-primary-subtle shadow-md" : "border-border bg-surface-raised shadow-sm"
+                } ${!rewardsOpen ? "opacity-60" : ""}`}
               >
                 <Character name={r.character} size={64} className="shrink-0" />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="text-title-sm text-text-primary">{r.name}</div>
                   <div className="text-body-md text-text-secondary mt-0.5">{r.desc}</div>
                   <div className="text-caption-md text-text-tertiary mt-1">여름에 다시 와야 하는 이유: {r.reason}</div>
+                  {achieved ? (
+                    isTarget ? (
+                      <div className="text-label-sm text-primary mt-2">받음</div>
+                    ) : (
+                      <button
+                        onClick={() => buyBundle(r.id)}
+                        disabled={bought}
+                        className={`press mt-2 min-h-[44px] px-4 rounded-lg text-label-sm ${
+                          bought ? "bg-surface-sunken shadow-inner text-text-tertiary" : "bg-primary text-on-primary shadow-sm"
+                        }`}
+                      >
+                        {bought ? "구매함 (시연)" : "묶음 할인가로 구매 (할인 금액 확정 전)"}
+                      </button>
+                    )
+                  ) : (
+                    rewardsOpen && (
+                      <button
+                        onClick={() => setPickedId(r.id)}
+                        aria-pressed={picked}
+                        className={`press mt-2 min-h-[44px] px-4 rounded-lg text-label-sm border ${
+                          picked ? "bg-primary text-on-primary border-primary" : "border-primary text-primary"
+                        }`}
+                      >
+                        {picked ? "목표로 선택됨" : "이걸 목표로"}
+                      </button>
+                    )
+                  )}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
 
         <div className="mt-6 bg-surface-sunken shadow-inner rounded-lg p-4 text-caption-md text-text-secondary leading-relaxed">
           세 보상 모두 {GAUGE.rewardWindowLabel}에 화천읍 권역에 모여 있어요. 어느 보상을 골라도 여름 화천 1박으로 이어져요.
+          {!achieved && targetReward && ` 지금 목표까지 ${won(amountToThreshold)} 남았어요.`}
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0">
-        <div className="phone-frame !min-h-0 !shadow-none p-4 bg-surface border-t border-border">
-          <button
-            disabled={!pickedId}
-            onClick={handleConfirm}
-            className={`press w-full py-4 min-h-[44px] rounded-lg text-label-lg text-on-primary ${
-              pickedId ? "bg-primary shadow-md" : "bg-text-tertiary"
-            }`}
-          >
-            이 보상 받기
-          </button>
+      {!achieved && rewardsOpen && (
+        <div className="fixed bottom-0 left-0 right-0">
+          <div className="phone-frame !min-h-0 !shadow-none p-4 bg-surface border-t border-border">
+            <button
+              disabled={!pickedId}
+              onClick={handleConfirm}
+              className={`press w-full py-4 min-h-[44px] rounded-lg text-label-lg text-on-primary ${
+                pickedId ? "bg-primary shadow-md" : "bg-text-tertiary"
+              }`}
+            >
+              {targetReward ? "목표 바꾸기" : "이 보상을 목표로 모으기"}
+            </button>
+          </div>
+        </div>
+      )}
+      {(achieved || !rewardsOpen) && <BottomNav />}
+    </div>
+  );
+}
+
+// ---------------- GroupScreen ----------------
+// 제안서 규칙 "가족, 일행 영수증을 한 계정에 합산". 초대 코드는 시연용 고정값이다.
+function GroupScreen() {
+  const { state, derived, addMember, removeMember } = useAppState();
+  const [newName, setNewName] = useState("");
+
+  const handleAdd = () => {
+    const n = newName.trim();
+    if (!n) return;
+    addMember(n);
+    setNewName("");
+  };
+
+  return (
+    <div className="phone-frame bg-background pb-28">
+      <TopBar title="일행 합산" backTo="home" />
+      <div className="p-4 flex flex-col gap-6">
+        <div className="bg-surface rounded-xl shadow-md p-5">
+          <div className="text-title-sm text-text-primary">한 계정에 모아요</div>
+          <div className="text-caption-md text-text-tertiary mt-1 mb-4">가족과 일행의 영수증을 합쳐 게이지를 채워요. 게이지 100은 약 40만원(가정)이라 혼자보다 함께가 빨라요.</div>
+          <div className="bg-surface-sunken shadow-inner rounded-lg p-4 flex items-center justify-between">
+            <span className="text-caption-md text-text-secondary">초대 코드 (시연용)</span>
+            <span className="text-title-sm text-text-primary tracking-wider">{GROUP_CODE_DEMO}</span>
+          </div>
+        </div>
+
+        <div className="bg-surface rounded-xl shadow-md p-5">
+          <div className="text-title-sm text-text-primary mb-3">일행 ({derived.payers.length}명)</div>
+          <div className="flex gap-2 mb-4">
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+              placeholder="일행 이름"
+              className="flex-1 min-w-0 bg-surface-sunken shadow-inner border border-border-strong rounded-lg px-3 py-2.5 text-body-lg text-text-primary placeholder:text-text-tertiary focus:border-primary outline-none"
+            />
+            <button
+              onClick={handleAdd}
+              className="press min-h-[44px] px-4 bg-primary text-on-primary rounded-lg shadow-sm text-label-md"
+            >
+              추가
+            </button>
+          </div>
+          <div className="flex flex-col gap-2">
+            {derived.amountByPayer.map((p, idx) => (
+              <div key={p.name} className="flex items-center justify-between min-h-[44px] px-3 rounded-lg bg-surface-raised border border-border">
+                <span className="text-label-md text-text-primary">
+                  {p.name}
+                  {idx === 0 && <span className="text-caption-sm text-text-tertiary"> (본인)</span>}
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="text-label-md text-text-secondary">{won(p.amount)}</span>
+                  {idx > 0 && (
+                    <button
+                      onClick={() => removeMember(p.name)}
+                      className="press tap-target-44 flex items-center justify-center text-text-tertiary"
+                      aria-label={`${p.name} 빼기`}
+                    >
+                      <Icon name="x" size={16} />
+                    </button>
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+      <BottomNav />
     </div>
   );
 }
@@ -352,7 +504,7 @@ function ReceiptCategory() {
 // ---------------- ReceiptUpload ----------------
 function ReceiptUpload() {
   const nav = useNav();
-  const { addReceipt } = useAppState();
+  const { state, addReceipt, derived } = useAppState();
   const categoryId = nav.params?.categoryId || CATEGORIES[0].id;
   const category = CATEGORIES.find((c) => c.id === categoryId) || CATEGORIES[0];
 
@@ -361,6 +513,7 @@ function ReceiptUpload() {
   const [amount, setAmount] = useState("");
   const [merchant, setMerchant] = useState("");
   const [fileName, setFileName] = useState("");
+  const [payer, setPayer] = useState(state.user?.name || "");
   const [showStayNotice, setShowStayNotice] = useState(category.needsAddressProof);
 
   const canSubmit = type && regionId && amount && merchant && fileName;
@@ -380,6 +533,7 @@ function ReceiptUpload() {
       regionId,
       amount: Number(amount),
       merchant,
+      payer,
     });
     nav.navigate("receiptStatus");
   };
@@ -414,6 +568,25 @@ function ReceiptUpload() {
           <div className="text-caption-md text-text-tertiary mb-2">선택한 카테고리</div>
           <div className="inline-block bg-primary-subtle text-primary text-label-md rounded-lg px-3 py-1.5">
             {category.label}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-title-sm text-text-primary mb-1">결제한 사람</div>
+          <div className="text-caption-md text-text-tertiary mb-3">일행 영수증도 이 계정 게이지에 합산돼요</div>
+          <div className="flex flex-wrap gap-2">
+            {derived.payers.map((name) => (
+              <button
+                key={name}
+                onClick={() => setPayer(name)}
+                aria-pressed={payer === name}
+                className={`press min-h-[44px] px-4 rounded-lg text-label-md border ${
+                  payer === name ? "border-primary text-primary bg-primary-subtle" : "border-border bg-surface-raised text-text-secondary shadow-sm"
+                }`}
+              >
+                {name}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -521,7 +694,7 @@ function ReceiptStatus() {
             <div>
               <div className="text-title-sm text-text-primary">{r.merchant}</div>
               <div className="text-caption-md text-text-tertiary mt-1">
-                {findLabel(CATEGORIES, r.category)} 지역 {findLabel(REGIONS, r.regionId, "name")}
+                {r.season === "summer" ? "여름" : "겨울"}, {findLabel(CATEGORIES, r.category)}, {findLabel(REGIONS, r.regionId, "name")}{r.payer ? `, ${r.payer}` : ""}
               </div>
               <div className="text-label-lg text-text-primary mt-1.5">
                 {Number(r.amount).toLocaleString("ko-KR")}원
@@ -603,9 +776,18 @@ function RouteMap() {
   );
 }
 
+function KpiRow({ label, value }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-caption-md text-text-secondary">{label}</span>
+      <span className="text-label-md text-text-primary">{value}</span>
+    </div>
+  );
+}
+
 // ---------------- AdminDashboard ----------------
 function AdminDashboard() {
-  const { derived } = useAppState();
+  const { state, derived } = useAppState();
   const verified = derived.verified;
 
   const byRegion = REGIONS.map((r) => ({
@@ -640,7 +822,7 @@ function AdminDashboard() {
             <Stat label="숙박 인증 건수" value={stayCount + "건"} />
           </div>
           <div className="text-caption-sm text-text-tertiary mt-4">
-            실제 서비스에서는 더픽트 인증 API 결과와 NFC 태그 로그를 합산합니다. 지금은 오늘 시연 입력값 기준입니다.
+            실제 서비스에서는 더픽트 인증 API 결과를 합산합니다. 지금은 오늘 시연 입력값 기준입니다.
           </div>
         </div>
 
@@ -676,7 +858,7 @@ function AdminDashboard() {
           <div className="text-label-sm text-text-secondary mb-2">여름 보상 선택 (겨울 손님이 원하는 것)</div>
           <div className="grid grid-cols-3 gap-2 mb-5">
             {REWARDS.map((r) => {
-              const chosen = derived.selectedReward && derived.selectedReward.id === r.id;
+              const chosen = derived.targetReward && derived.targetReward.id === r.id;
               return (
                 <div
                   key={r.id}
@@ -693,18 +875,20 @@ function AdminDashboard() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-caption-md text-text-secondary">겨울 참가자 중 여름 재방문 비율</span>
-              <span className="text-label-sm text-text-tertiary">8월 이후 측정</span>
-            </div>
-            <div className="text-caption-sm text-text-tertiary -mt-2">비교 기준: 강원 인구감소지역 재방문율 31.9% (연합뉴스 2025.10.13)</div>
-            <div className="flex items-center justify-between">
-              <span className="text-caption-md text-text-secondary">묶음 할인 이용률</span>
-              <span className="text-label-sm text-text-tertiary">8월 이후 측정</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-caption-md text-text-secondary">게이지 100 달성자</span>
-              <span className="text-label-md text-text-primary">{derived.rewardUnlocked ? 1 : 0}명</span>
+            <KpiRow label="겨울 인증 영수증 총액" value={won(derived.winterAmount)} />
+            <KpiRow label="여름 인증 영수증 총액" value={won(derived.summerAmount)} />
+            <KpiRow label="8월 초 화천 숙박 인증" value={derived.summerVerified.filter((v) => v.category === "stay").length + "건"} />
+            <KpiRow label="게이지 100 달성자" value={(derived.achieved ? 1 : 0) + "명"} />
+            <KpiRow
+              label="묶음 할인 이용"
+              value={derived.achieved ? `${state.bundlePurchased.length} / 2건` : "달성자 없음"}
+            />
+            <KpiRow
+              label="겨울 참가자 중 여름 재방문"
+              value={derived.winterVerified.length ? `${derived.summerVerified.length ? 1 : 0} / 1명` : "참가자 없음"}
+            />
+            <div className="text-caption-sm text-text-tertiary">
+              비교 기준: 강원 인구감소지역 재방문율 31.9% (연합뉴스 2025.10.13). 위 값은 오늘 시연 입력 기준이고, 보상 없이도 다시 왔을 사람과 구분되지 않아 인과가 아닌 정황 근거다.
             </div>
           </div>
         </div>
@@ -722,6 +906,20 @@ function AdminDashboard() {
               );
             })}
             {verified.length === 0 && <span className="text-caption-md text-text-tertiary">인증 데이터 없음</span>}
+          </div>
+        </div>
+
+        {/* 제안서 "영수증 4주, 사장님이 홍보대사" 기준. 가게 계산대에 두는 안내물 미리보기 */}
+        <div className="bg-surface rounded-xl shadow-md p-5">
+          <div className="text-title-sm text-text-primary mb-1">가게 안내물 미리보기</div>
+          <div className="text-caption-md text-text-tertiary mb-4">화천 가게 계산대에 두는 안내물. 사장님이 홍보대사가 된다</div>
+          <div className="bg-primary rounded-lg shadow-md p-5 flex items-center gap-4">
+            <Character name="dali" size={72} className="shrink-0" />
+            <div className="text-on-primary">
+              <div className="text-title-md">영수증 버리지 마세요</div>
+              <div className="text-title-sm mt-1">여름 숙박권 돼요</div>
+              <div className="text-caption-md opacity-90 mt-2">{GAUGE.validWindowLabel} 인증</div>
+            </div>
           </div>
         </div>
 

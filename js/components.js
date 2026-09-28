@@ -76,6 +76,28 @@ function Icon({ name, size = 24, className = "", strokeWidth = 2 }) {
           <path d="M5 13l4 4L19 7" />
         </svg>
       );
+    case "gift":
+      return (
+        <svg {...common}>
+          <rect x="3" y="8" width="18" height="4" rx="1" />
+          <path d="M12 8v13M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8" />
+          <path d="M12 8c-1.5-3-5-3-5-1s3 1 5 1zM12 8c1.5-3 5-3 5-1s-3 1-5 1z" />
+        </svg>
+      );
+    case "users":
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="8" r="3.5" />
+          <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
+          <path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6" />
+        </svg>
+      );
+    case "x":
+      return (
+        <svg {...common}>
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      );
     case "plus":
       return (
         <svg {...common}>
@@ -136,13 +158,14 @@ function BottomNav() {
   const tabs = [
     { screen: "home", label: "홈", icon: "home" },
     { screen: "receiptCategory", label: "영수증인증", icon: "receipt" },
-    { screen: "route", label: "화천 동선", icon: "map" },
+    { screen: "reward", label: "여름 보상", icon: "gift" },
+    FEATURES.nfcRoute ? { screen: "route", label: "화천 동선", icon: "map" } : null,
     { screen: "admin", label: "대행사 화면", icon: "chart" },
-  ];
+  ].filter(Boolean);
   return (
     <div className="fixed bottom-0 left-0 right-0 z-sticky">
       <div className="phone-frame !min-h-0 !shadow-none">
-        <div className="grid grid-cols-4 border-t border-border bg-surface shadow-[0_-4px_16px_rgba(36,20,24,0.06)]">
+        <div className={`grid ${tabs.length === 5 ? "grid-cols-5" : "grid-cols-4"} border-t border-border bg-surface shadow-nav`}>
           {tabs.map((t) => (
             <button
               key={t.screen}
@@ -194,6 +217,16 @@ function withObjectParticle(word) {
   if (last < 0xac00 || last > 0xd7a3) return word + "를";
   const hasBatchim = (last - 0xac00) % 28 !== 0;
   return word + (hasBatchim ? "을" : "를");
+}
+
+// 축제 시작일까지 D-day. 하드코딩하지 않고 오늘 날짜로 계산한다.
+function ddayLabel(dateStr) {
+  const today = new Date();
+  const start = new Date(dateStr + "T00:00:00");
+  const diff = Math.ceil((start - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / 86400000);
+  if (diff > 0) return "D-" + diff;
+  if (diff === 0) return "D-DAY";
+  return "진행 중";
 }
 
 function won(n) {

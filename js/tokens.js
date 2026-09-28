@@ -97,6 +97,7 @@ const shadow = {
   md: "0 8px 20px rgba(36,20,24,0.12), 0 2px 6px rgba(36,20,24,0.08)",
   lg: "0 20px 48px rgba(36,20,24,0.22), 0 8px 20px rgba(36,20,24,0.14)",
   inset: "inset 0 1px 3px rgba(36,20,24,0.12)",
+  navTop: "0 -4px 16px rgba(36,20,24,0.06)",  // 하단 탭바가 위로 드리우는 그림자
   frame: "0 0 40px rgba(36,20,24,0.10)",
 };
 

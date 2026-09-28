@@ -26,18 +26,25 @@ function useNav() {
   return ctx;
 }
 
-// ---------- 앱 상태 (로그인, 영수증, NFC 태그, 여름 보상 선택) ----------
-// 스킬 절대 규칙: localStorage/sessionStorage 금지, 인증은 httpOnly 쿠키.
-// 백엔드가 없어 쿠키 발급이 불가능해 지속성 자체를 포기하고 순수 메모리 상태로만 둔다.
+// ---------- 앱 상태 ----------
+// 스킬 절대 규칙: localStorage/sessionStorage 금지. 백엔드가 없어 순수 메모리 상태로만 둔다.
+// 제안서 흐름: 영수증을 올리면 보상 3개가 열리고(2단계), 목표 보상을 먼저 고른 뒤(3단계)
+// 게이지 100을 채우면 그 보상을 받고 나머지 둘은 할인가로 열린다(4단계).
+// 여름 영수증은 다음 겨울 게이지로 이어진다(5단계).
 const AppStateContext = createContext(null);
 
+const INITIAL_STATE = {
+  user: null,
+  receipts: initialReceipts,
+  taggedSpots: [],
+  members: [],            // 일행(가족, 동행) 이름. 영수증을 한 계정에 합산한다.
+  season: "winter",       // "winter" | "summer". 여름은 시연용으로 넘긴다.
+  targetRewardId: null,   // 먼저 고른 목표 보상
+  bundlePurchased: [],    // 묶음 할인가로 구매한 보상 id
+};
+
 function AppStateProvider({ children }) {
-  const [state, setState] = useState({
-    user: null,
-    receipts: initialReceipts,
-    taggedSpots: [],
-    selectedRewardId: null,
-  });
+  const [state, setState] = useState(INITIAL_STATE);
 
   const login = (name, phone) => setState((s) => ({ ...s, user: { name, phone } }));
 
@@ -45,7 +52,7 @@ function AppStateProvider({ children }) {
     setState((s) => ({
       ...s,
       receipts: [
-        { id: Date.now(), status: "처리중", createdAt: new Date().toISOString(), ...receipt },
+        { id: Date.now(), status: "처리중", season: s.season, createdAt: new Date().toISOString(), ...receipt },
         ...s.receipts,
       ],
     }));
@@ -63,31 +70,46 @@ function AppStateProvider({ children }) {
   const tagSpot = (spotId) =>
     setState((s) => (s.taggedSpots.includes(spotId) ? s : { ...s, taggedSpots: [...s.taggedSpots, spotId] }));
 
-  const selectReward = (rewardId) => setState((s) => ({ ...s, selectedRewardId: rewardId }));
+  const addMember = (name) =>
+    setState((s) => (!name || s.members.includes(name) ? s : { ...s, members: [...s.members, name] }));
+  const removeMember = (name) => setState((s) => ({ ...s, members: s.members.filter((m) => m !== name) }));
 
-  const reset = () =>
-    setState({ user: null, receipts: initialReceipts, taggedSpots: [], selectedRewardId: null });
+  const selectTargetReward = (rewardId) => setState((s) => ({ ...s, targetRewardId: rewardId }));
+  const buyBundle = (rewardId) =>
+    setState((s) => (s.bundlePurchased.includes(rewardId) ? s : { ...s, bundlePurchased: [...s.bundlePurchased, rewardId] }));
+  const setSeason = (season) => setState((s) => ({ ...s, season }));
 
   const verified = state.receipts.filter((r) => r.status === "인증완료");
-  const totalVerifiedAmount = verified.reduce((sum, r) => sum + Number(r.amount || 0), 0);
-  const hasStayReceipt = verified.some((r) => r.category === "stay");
+  const winterVerified = verified.filter((r) => r.season === "winter");
+  const summerVerified = verified.filter((r) => r.season === "summer");
+  const winterAmount = winterVerified.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+  const summerAmount = summerVerified.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+  const totalVerifiedAmount = winterAmount + summerAmount;
 
-  // 게이지: 인증된 영수증 금액을 게이지 점수로 환산한다(5만원당 12.5, 문턱 100).
-  const gaugeRaw = amountToGauge(totalVerifiedAmount);
+  // 겨울 게이지: 겨울 영수증만 센다. 5만원당 12.5(가정), 문턱 100.
+  const gaugeRaw = amountToGauge(winterAmount);
   const gauge = Math.min(GAUGE.threshold, Math.round(gaugeRaw * 10) / 10);
   const gaugeFraction = gauge / GAUGE.threshold;
-  const rewardUnlocked = gauge >= GAUGE.threshold;
-  const amountToThreshold = Math.max(
-    0,
-    Math.ceil(((GAUGE.threshold - gaugeRaw) / GAUGE.pointsPerUnit) * GAUGE.amountUnit)
-  );
-  const selectedReward = REWARDS.find((r) => r.id === state.selectedRewardId) || null;
+  const gaugeFull = gauge >= GAUGE.threshold;
+  const amountToThreshold = Math.max(0, Math.ceil(((GAUGE.threshold - gaugeRaw) / GAUGE.pointsPerUnit) * GAUGE.amountUnit));
+
+  // 다음 겨울 게이지: 여름 영수증을 같은 규칙으로 센다(가정).
+  const nextWinterGauge = Math.min(GAUGE.threshold, Math.round(amountToGauge(summerAmount) * 10) / 10);
+
+  const rewardsOpen = winterVerified.length > 0; // 제안서 2단계: 영수증을 올리면 보상 3개가 열린다
+  const targetReward = REWARDS.find((r) => r.id === state.targetRewardId) || null;
+  const achieved = gaugeFull && !!targetReward;  // 제안서 4단계
+
+  // 일행 합산: 결제자별 인증 금액
+  const payers = [state.user?.name, ...state.members].filter(Boolean);
+  const amountByPayer = payers.map((p) => ({
+    name: p,
+    amount: winterVerified.filter((r) => r.payer === p).reduce((s, r) => s + Number(r.amount || 0), 0),
+  }));
 
   const regionProgress = REGIONS.map((region) => {
     const verifiedInRegion = verified.some((r) => r.regionId === region.id);
-    const taggedInRegion = NFC_SPOTS.some(
-      (spot) => spot.regionId === region.id && state.taggedSpots.includes(spot.id)
-    );
+    const taggedInRegion = NFC_SPOTS.some((spot) => spot.regionId === region.id && state.taggedSpots.includes(spot.id));
     return { ...region, done: verifiedInRegion || taggedInRegion };
   });
   const completedRegions = regionProgress.filter((r) => r.done).length;
@@ -97,17 +119,28 @@ function AppStateProvider({ children }) {
     login,
     addReceipt,
     tagSpot,
-    selectReward,
-    reset,
+    addMember,
+    removeMember,
+    selectTargetReward,
+    buyBundle,
+    setSeason,
     derived: {
       verified,
+      winterVerified,
+      summerVerified,
+      winterAmount,
+      summerAmount,
       totalVerifiedAmount,
-      hasStayReceipt,
       gauge,
       gaugeFraction,
-      rewardUnlocked,
+      gaugeFull,
       amountToThreshold,
-      selectedReward,
+      nextWinterGauge,
+      rewardsOpen,
+      targetReward,
+      achieved,
+      payers,
+      amountByPayer,
       regionProgress,
       completedRegions,
     },

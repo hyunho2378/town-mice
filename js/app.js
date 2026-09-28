@@ -8,6 +8,7 @@ const SCREENS = {
   route: RouteMap,
   admin: AdminDashboard,
   reward: RewardSelect,
+  group: GroupScreen,
 };
 
 function Router() {
