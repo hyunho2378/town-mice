@@ -135,6 +135,7 @@
       body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard Variable", "Pretendard", system-ui, sans-serif; }
 
       .phone-frame {
+        width: 100%;
         max-width: 430px;
         margin: 0 auto;
         min-height: 100vh;
@@ -169,6 +170,10 @@
       @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
       .sheet-up { animation: sheetUp 240ms var(--motion-standard); }
 
+      .receipt-sheet { width:100%; max-height:92dvh; overflow-y:auto; overscroll-behavior:contain; padding-bottom:env(safe-area-inset-bottom); }
+      .receipt-preview { width:min(100%, 280px); margin:auto; }
+      .receipt-gallery { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+      @media(max-width:359px) { .receipt-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); } }
       /* 키보드 포커스 가시성 */
       a:focus-visible, button:focus-visible, input:focus-visible {
         outline: 2px solid var(--color-primary);
@@ -200,7 +205,7 @@
       // tokens.js는 위에서 이미 순수 스크립트로 로드했으므로 이 목록에는 넣지 않는다.
       // 순서 중요: data -> state -> components -> pages -> app
       (async function boot() {
-        const files = ["./js/data.js", "./js/state.js", "./js/components.js", "./js/pages.js", "./js/app.js"];
+        const files = ["./js/data.js", "./js/state.js", "./js/components.js", "./js/receipts.js", "./js/pages.js", "./js/app.js"];
         try {
           const parts = [];
           for (const f of files) {
