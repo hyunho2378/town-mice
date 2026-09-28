@@ -87,6 +87,32 @@ function Icon({ name, size = 24, className = "", strokeWidth = 2 }) {
   }
 }
 
+// ---------- 화천군 공식 캐릭터 ----------
+// 출처: 화천군청 상징물 페이지(ihc.go.kr). 기본 캐릭터 산이와 진이(진달래 남매요정),
+// 보조 캐릭터 달이(수달), 연이(연꽃), 물이(맑은 물), 천이(산천어). 저작권은 화천군에 있다.
+// 스킬의 일러스트 규칙(unDraw, 단색)은 장식용 삽화에 관한 것이고, 이건 지자체 공식 브랜드
+// 에셋이라 다르다. 색을 바꾸거나 변형하지 않고 원본 그대로 쓴다.
+const CHARACTER_NAMES = {
+  sani: "산이",
+  jini: "진이",
+  muli: "물이",
+  yeoni: "연이",
+  dali: "달이",
+  cheoni: "천이",
+};
+
+function Character({ name, size = 64, className = "" }) {
+  return (
+    <img
+      src={`./assets/characters/${name}.svg`}
+      alt={`화천군 공식 캐릭터 ${CHARACTER_NAMES[name] || name}`}
+      style={{ height: size, width: "auto" }}
+      className={className}
+      draggable={false}
+    />
+  );
+}
+
 // ---------- 상단 바 ----------
 function TopBar({ title, backTo }) {
   const nav = useNav();
@@ -159,6 +185,15 @@ function Stat({ label, value }) {
       <div className="text-title-md text-text-primary mt-0.5">{value}</div>
     </div>
   );
+}
+
+
+// 한글 목적격 조사(을/를) 자동 선택. 마지막 글자에 받침이 있으면 "을", 없으면 "를".
+function withObjectParticle(word) {
+  const last = word.charCodeAt(word.length - 1);
+  if (last < 0xac00 || last > 0xd7a3) return word + "를";
+  const hasBatchim = (last - 0xac00) % 28 !== 0;
+  return word + (hasBatchim ? "을" : "를");
 }
 
 function won(n) {

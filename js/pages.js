@@ -113,53 +113,107 @@ function Login() {
 }
 
 // ---------------- Home ----------------
+// "겨울 영수증, 여름 화천"(허주은 제안) 구현. 겨울에 쓴 영수증이 게이지로 쌓이고,
+// 게이지 100을 채우면 여름 보상 3개 중 하나를 고른다.
 function Home() {
   const nav = useNav();
   const { state, derived } = useAppState();
-  const { totalVerifiedAmount, neededForStay, hasStayReceipt, completedRegions, regionProgress } = derived;
-
-  const stayProgressFraction = Math.min(1, totalVerifiedAmount / EVENT.thresholdStay);
+  const { totalVerifiedAmount, gauge, gaugeFraction, rewardUnlocked, amountToThreshold, selectedReward, completedRegions, regionProgress } = derived;
 
   return (
     <div className="phone-frame bg-background pb-28">
-      <div className="bg-primary text-on-primary px-5 pt-6 pb-10 rounded-b-xl shadow-md">
-        <div className="text-caption-sm opacity-80">Bill Concert × Town MICE</div>
-        <div className="text-title-md mt-1">{EVENT.name}</div>
-        <div className="flex items-center justify-between mt-5">
-          <div className="text-body-md opacity-90">{EVENT.ticketNo}</div>
-          <div className="bg-on-primary/20 rounded px-2.5 py-1 text-label-sm">{EVENT.dday}</div>
+      <div className="bg-primary text-on-primary px-5 pt-6 pb-10 rounded-b-xl shadow-md flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-caption-sm opacity-80">Bill Concert × Town MICE</div>
+          <div className="text-title-md mt-1">{EVENT.name}</div>
+          <div className="flex items-center gap-2 mt-4">
+            <div className="text-body-md opacity-90">{EVENT.ticketNo}</div>
+            <div className="bg-on-primary/20 rounded px-2.5 py-1 text-label-sm">{EVENT.dday}</div>
+          </div>
+          <div className="text-caption-md opacity-80 mt-2">{state.user?.name}님 환영합니다</div>
         </div>
-        <div className="text-caption-md opacity-80 mt-2">{state.user?.name}님 환영합니다</div>
+        {/* 천이(산천어): 겨울 산천어축제 단계를 상징 */}
+        <Character name="cheoni" size={72} className="shrink-0 -mb-2" />
       </div>
 
-      {/* 인증현황 카드. Bill Concert 실제 화면 구조를 그대로 따른다 */}
+      {/* 겨울 영수증 게이지 카드 */}
       <div className="mx-4 -mt-6 bg-surface rounded-xl shadow-md p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-title-sm text-text-primary">인증현황 ({derived.verified.length})</div>
+        <div className="flex items-center justify-between mb-1">
+          <div className="text-title-sm text-text-primary">겨울 영수증 게이지</div>
+          <div className="text-label-md text-primary">
+            {gauge}
+            <span className="text-caption-md text-text-tertiary"> / {GAUGE.threshold}</span>
+          </div>
+        </div>
+        <div className="text-caption-md text-text-tertiary mb-4">화천 가게 영수증 5만원마다 게이지 12.5 (가정)</div>
+
+        <div className="w-full h-3 rounded-full inset-well overflow-hidden">
+          {/* width가 아닌 transform: scaleX로 진행률을 표현한다(layout 유발 속성 금지 규칙) */}
+          <div
+            className="h-full w-full bg-primary rounded-full origin-left"
+            style={{ transform: `scaleX(${gaugeFraction})`, transition: "transform var(--motion-base) var(--motion-standard)" }}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1 mt-4">
+          <Row label="인증한 영수증 합계" value={won(totalVerifiedAmount)} strong />
+          <Row
+            label={selectedReward ? "받은 여름 보상" : rewardUnlocked ? "여름 보상 열림" : "게이지 100까지 남은 금액"}
+            value={selectedReward ? selectedReward.name : rewardUnlocked ? "선택 가능" : won(amountToThreshold)}
+            accent
+          />
+        </div>
+
+        {rewardUnlocked && !selectedReward ? (
+          <button
+            onClick={() => nav.navigate("reward")}
+            className="press w-full mt-4 min-h-[44px] bg-primary text-on-primary rounded-lg shadow-md text-label-lg"
+          >
+            여름 보상 고르기
+          </button>
+        ) : (
           <button
             onClick={() => nav.navigate("receiptCategory")}
-            className="press min-h-[44px] px-4 bg-primary text-on-primary rounded-lg shadow-sm text-label-sm"
+            className="press w-full mt-4 min-h-[44px] bg-primary text-on-primary rounded-lg shadow-md text-label-lg"
           >
             영수증 인증하기
           </button>
+        )}
+      </div>
+
+      {/* 여름 화천 보상 미리보기. 게이지가 차기 전에도 무엇을 받는지 보여줘서 동기를 만든다 */}
+      <div className="mx-4 mt-8 bg-surface rounded-xl shadow-md p-5">
+        <div className="text-title-sm text-text-primary">여름 화천 보상</div>
+        <div className="text-caption-md text-text-tertiary mt-1 mb-4">{GAUGE.rewardWindowLabel}</div>
+        <div className="grid grid-cols-3 gap-3">
+          {REWARDS.map((r) => {
+            const isChosen = selectedReward && selectedReward.id === r.id;
+            const isBundle = selectedReward && selectedReward.id !== r.id;
+            return (
+              <div
+                key={r.id}
+                className={`rounded-lg p-3 flex flex-col items-center text-center border ${
+                  isChosen
+                    ? "bg-accent-subtle border-accent shadow-sm"
+                    : isBundle
+                    ? "bg-primary-subtle border-primary"
+                    : "bg-surface-sunken shadow-inner border-transparent"
+                } ${!rewardUnlocked && !selectedReward ? "opacity-60" : ""}`}
+              >
+                <Character name={r.character} size={48} />
+                <div className="text-label-sm text-text-primary mt-2">{r.name}</div>
+                <div className="text-caption-sm text-text-tertiary mt-0.5">
+                  {isChosen ? "받음" : isBundle ? "할인가" : rewardUnlocked ? "선택 가능" : "잠김"}
+                </div>
+              </div>
+            );
+          })}
         </div>
-        <div className="flex flex-col gap-1">
-          <Row label="총 인증 금액" value={won(totalVerifiedAmount)} strong />
-          <Row label="1박 누적 목표" value={won(EVENT.thresholdStay) + " (가정)"} />
-          <Row label="목표까지 남은 금액" value={won(neededForStay)} accent />
-        </div>
-        <div className="mt-4">
-          <div className="w-full h-2.5 rounded-full inset-well overflow-hidden">
-            {/* width가 아닌 transform: scaleX로 진행률을 표현한다(layout 유발 속성 금지 규칙) */}
-            <div
-              className="h-full w-full bg-primary rounded-full origin-left"
-              style={{ transform: `scaleX(${stayProgressFraction})`, transition: "transform var(--motion-base) var(--motion-standard)" }}
-            />
+        {selectedReward && (
+          <div className="mt-4 bg-surface-sunken shadow-inner rounded-lg p-3 text-caption-md text-text-secondary leading-relaxed">
+            {withObjectParticle(selectedReward.name)} 받았어요. 나머지 두 보상은 묶음 할인가로 열려서 여름에 함께 쓰면 1박 코스가 돼요.
           </div>
-          <div className="text-caption-md text-text-tertiary mt-2">
-            {hasStayReceipt ? "숙박 인증 완료. 1박 코스가 확정됐어요" : "숙박 영수증을 더하면 목표를 쉽게 채워요"}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* 화천 권역 스탬프. 동해사이형 진행 로직을 이식했다 */}
@@ -186,12 +240,78 @@ function Home() {
         </button>
       </div>
 
-      <div className="mx-4 mt-8 bg-surface rounded-xl shadow-md p-5">
-        <div className="text-title-sm text-text-primary mb-2">내 티켓 보기</div>
-        <div className="text-body-md text-text-secondary">목표 달성 시 다음 시즌 체험과 공연 입장 혜택으로 전환됩니다</div>
+      <BottomNav />
+    </div>
+  );
+}
+
+// ---------------- RewardSelect ----------------
+// 게이지 100 달성 후 여름 보상 3개 중 하나를 고른다. 고른 보상은 받고, 나머지 둘은
+// 묶음 할인가로 열린다(제안서 원문: "보상 하나를 달성하면 나머지 두 개를 할인가로 구매").
+function RewardSelect() {
+  const nav = useNav();
+  const { selectReward, derived } = useAppState();
+  const [pickedId, setPickedId] = useState(null);
+
+  const handleConfirm = () => {
+    if (!pickedId) return;
+    selectReward(pickedId);
+    nav.replace("home");
+  };
+
+  return (
+    <div className="phone-frame bg-surface pb-32">
+      <TopBar title="여름 보상 고르기" backTo="home" />
+      <div className="p-5">
+        <div className="flex items-center gap-3 mb-6">
+          <Character name="sani" size={56} />
+          <div>
+            <div className="text-title-lg text-text-primary">게이지 100 달성</div>
+            <div className="text-caption-md text-text-tertiary mt-1">여름 보상 하나를 고르면 나머지 둘은 할인가로 열려요</div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {REWARDS.map((r) => {
+            const picked = pickedId === r.id;
+            return (
+              <button
+                key={r.id}
+                onClick={() => setPickedId(r.id)}
+                className={`press w-full flex items-center gap-4 text-left rounded-lg border p-4 min-h-[44px] ${
+                  picked ? "border-primary bg-primary-subtle shadow-md" : "border-border bg-surface-raised shadow-sm"
+                }`}
+                aria-pressed={picked}
+              >
+                <Character name={r.character} size={64} className="shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-title-sm text-text-primary">{r.name}</div>
+                  <div className="text-body-md text-text-secondary mt-0.5">{r.desc}</div>
+                  <div className="text-caption-md text-text-tertiary mt-1">여름에 다시 와야 하는 이유: {r.reason}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-6 bg-surface-sunken shadow-inner rounded-lg p-4 text-caption-md text-text-secondary leading-relaxed">
+          세 보상 모두 {GAUGE.rewardWindowLabel}에 화천읍 권역에 모여 있어요. 어느 보상을 골라도 여름 화천 1박으로 이어져요.
+        </div>
       </div>
 
-      <BottomNav />
+      <div className="fixed bottom-0 left-0 right-0">
+        <div className="phone-frame !min-h-0 !shadow-none p-4 bg-surface border-t border-border">
+          <button
+            disabled={!pickedId}
+            onClick={handleConfirm}
+            className={`press w-full py-4 min-h-[44px] rounded-lg text-label-lg text-on-primary ${
+              pickedId ? "bg-primary shadow-md" : "bg-text-tertiary"
+            }`}
+          >
+            이 보상 받기
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -543,6 +663,50 @@ function AdminDashboard() {
               </div>
             );
           })}
+        </div>
+
+        {/* 겨울 영수증, 여름 화천 성과지표. 제안서 성과지표 그대로. 여름 수치는 8월 이후 측정이라
+            지금은 비교 기준만 보여주고 값을 지어내지 않는다 */}
+        <div className="bg-surface rounded-xl shadow-md p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-title-sm text-text-primary">겨울에서 여름으로</div>
+            <Character name="sani" size={40} />
+          </div>
+
+          <div className="text-label-sm text-text-secondary mb-2">여름 보상 선택 (겨울 손님이 원하는 것)</div>
+          <div className="grid grid-cols-3 gap-2 mb-5">
+            {REWARDS.map((r) => {
+              const chosen = derived.selectedReward && derived.selectedReward.id === r.id;
+              return (
+                <div
+                  key={r.id}
+                  className={`rounded-lg p-2 flex flex-col items-center text-center ${
+                    chosen ? "bg-accent-subtle shadow-sm" : "bg-surface-sunken shadow-inner"
+                  }`}
+                >
+                  <Character name={r.character} size={36} />
+                  <div className="text-caption-sm text-text-secondary mt-1">{r.name}</div>
+                  <div className="text-label-md text-text-primary">{chosen ? 1 : 0}명</div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-caption-md text-text-secondary">겨울 참가자 중 여름 재방문 비율</span>
+              <span className="text-label-sm text-text-tertiary">8월 이후 측정</span>
+            </div>
+            <div className="text-caption-sm text-text-tertiary -mt-2">비교 기준: 강원 인구감소지역 재방문율 31.9% (연합뉴스 2025.10.13)</div>
+            <div className="flex items-center justify-between">
+              <span className="text-caption-md text-text-secondary">묶음 할인 이용률</span>
+              <span className="text-label-sm text-text-tertiary">8월 이후 측정</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-caption-md text-text-secondary">게이지 100 달성자</span>
+              <span className="text-label-md text-text-primary">{derived.rewardUnlocked ? 1 : 0}명</span>
+            </div>
+          </div>
         </div>
 
         <div className="bg-surface rounded-xl shadow-md p-5">

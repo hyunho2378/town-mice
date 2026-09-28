@@ -7,6 +7,7 @@ const SCREENS = {
   receiptStatus: ReceiptStatus,
   route: RouteMap,
   admin: AdminDashboard,
+  reward: RewardSelect,
 };
 
 function Router() {

@@ -26,16 +26,18 @@ function useNav() {
   return ctx;
 }
 
-// ---------- 앱 상태 (로그인, 영수증, NFC 태그) ----------
+// ---------- 앱 상태 (로그인, 영수증, NFC 태그, 여름 보상 선택) ----------
 // 스킬 절대 규칙: localStorage/sessionStorage 금지, 인증은 httpOnly 쿠키.
-// 이 프로토타입에는 백엔드가 없어 쿠키 발급이 불가능하다. 그래서 지속성 자체를
-// 포기하고 순수 메모리 상태로만 둔다. 새로고침하면 초기화되는 게 오늘 시연에는
-// 오히려 안전하다(이전 시연 데이터가 남는 문제가 사라진다). 실제 서비스로 갈 때는
-// Node/Express + httpOnly 쿠키로 교체해야 한다(DESIGN.md 참고).
+// 백엔드가 없어 쿠키 발급이 불가능해 지속성 자체를 포기하고 순수 메모리 상태로만 둔다.
 const AppStateContext = createContext(null);
 
 function AppStateProvider({ children }) {
-  const [state, setState] = useState({ user: null, receipts: initialReceipts, taggedSpots: [] });
+  const [state, setState] = useState({
+    user: null,
+    receipts: initialReceipts,
+    taggedSpots: [],
+    selectedRewardId: null,
+  });
 
   const login = (name, phone) => setState((s) => ({ ...s, user: { name, phone } }));
 
@@ -61,13 +63,25 @@ function AppStateProvider({ children }) {
   const tagSpot = (spotId) =>
     setState((s) => (s.taggedSpots.includes(spotId) ? s : { ...s, taggedSpots: [...s.taggedSpots, spotId] }));
 
-  const reset = () => setState({ user: null, receipts: initialReceipts, taggedSpots: [] });
+  const selectReward = (rewardId) => setState((s) => ({ ...s, selectedRewardId: rewardId }));
+
+  const reset = () =>
+    setState({ user: null, receipts: initialReceipts, taggedSpots: [], selectedRewardId: null });
 
   const verified = state.receipts.filter((r) => r.status === "인증완료");
   const totalVerifiedAmount = verified.reduce((sum, r) => sum + Number(r.amount || 0), 0);
   const hasStayReceipt = verified.some((r) => r.category === "stay");
-  const neededForStay = Math.max(EVENT.thresholdStay - totalVerifiedAmount, 0);
-  const neededForDay = Math.max(EVENT.threshold1day - totalVerifiedAmount, 0);
+
+  // 게이지: 인증된 영수증 금액을 게이지 점수로 환산한다(5만원당 12.5, 문턱 100).
+  const gaugeRaw = amountToGauge(totalVerifiedAmount);
+  const gauge = Math.min(GAUGE.threshold, Math.round(gaugeRaw * 10) / 10);
+  const gaugeFraction = gauge / GAUGE.threshold;
+  const rewardUnlocked = gauge >= GAUGE.threshold;
+  const amountToThreshold = Math.max(
+    0,
+    Math.ceil(((GAUGE.threshold - gaugeRaw) / GAUGE.pointsPerUnit) * GAUGE.amountUnit)
+  );
+  const selectedReward = REWARDS.find((r) => r.id === state.selectedRewardId) || null;
 
   const regionProgress = REGIONS.map((region) => {
     const verifiedInRegion = verified.some((r) => r.regionId === region.id);
@@ -83,13 +97,17 @@ function AppStateProvider({ children }) {
     login,
     addReceipt,
     tagSpot,
+    selectReward,
     reset,
     derived: {
       verified,
       totalVerifiedAmount,
       hasStayReceipt,
-      neededForStay,
-      neededForDay,
+      gauge,
+      gaugeFraction,
+      rewardUnlocked,
+      amountToThreshold,
+      selectedReward,
       regionProgress,
       completedRegions,
     },
