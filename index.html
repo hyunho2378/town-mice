@@ -9,7 +9,7 @@
     <link rel="stylesheet" as="style" crossorigin
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
 
-    <!-- 토큰: 색상, 타이포, 간격, 모션의 단일 출처. 반드시 Tailwind CDN보다 먼저 로드한다 -->
+    <!-- 토큰: 색, 타이포, 간격, 반경, 그림자, 모션의 단일 출처. Tailwind CDN보다 먼저 로드한다 -->
     <script src="./js/tokens.js"></script>
 
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -19,52 +19,101 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       // Tailwind 설정을 tokens.js 값으로만 구성한다. 여기 직접 hex를 적지 않는다.
+      // borderRadius와 boxShadow는 extend가 아니라 theme을 통째로 교체한다(UI_DESIGN_SYSTEM_
+      // PLAYBOOK.md §1.1). 그래야 rounded-2xl처럼 5단계 밖의 클래스를 실수로 써도 카드 반경(12)
+      // 으로 흡수되어 화면이 깨지지 않는다.
       tailwind.config = {
         theme: {
+          borderRadius: {
+            none: radius.none + "px",
+            DEFAULT: radius.sm + "px",
+            sm: radius.sm + "px",
+            md: radius.md + "px",
+            lg: radius.md + "px",
+            xl: radius.lg + "px",
+            "2xl": radius.lg + "px",
+            "3xl": radius.lg + "px",
+            full: radius.full + "px",
+          },
+          boxShadow: {
+            none: "none",
+            sm: shadow.sm,
+            DEFAULT: shadow.sm,
+            md: shadow.md,
+            lg: shadow.lg,
+            xl: shadow.lg,
+            "2xl": shadow.lg,
+            inner: shadow.inset,
+            card: shadow.md,
+            frame: shadow.frame,
+          },
           extend: {
             colors: {
               primary: colors.primary,
-              "primary-dark": colors.primaryDark,
-              "primary-soft": colors.primarySoft,
+              "primary-pressed": colors.primaryPressed,
+              "primary-subtle": colors.primarySubtle,
               accent: colors.accent,
-              "accent-soft": colors.accentSoft,
+              "accent-subtle": colors.accentSubtle,
               "text-primary": colors.textPrimary,
               "text-secondary": colors.textSecondary,
               "text-tertiary": colors.textTertiary,
               "on-primary": colors.textOnPrimary,
+              "text-danger": colors.textDanger,
               scrim: colors.scrim,
               surface: colors.surface,
-              "surface-muted": colors.surfaceMuted,
+              "surface-raised": colors.surfaceRaised,
+              "surface-sunken": colors.surfaceSunken,
+              "surface-inverse": colors.surfaceInverse,
               background: colors.background,
               border: colors.border,
+              "border-strong": colors.borderStrong,
               success: colors.success,
               "success-soft": colors.successSoft,
               danger: colors.danger,
+              "danger-soft": colors.dangerSoft,
             },
             fontFamily: { sans: fonts.sans.split(", ") },
-            fontSize: {
-              "large-title": [typography.largeTitle.size + "px", { lineHeight: typography.largeTitle.leading, letterSpacing: typography.largeTitle.tracking }],
-              title1: [typography.title1.size + "px", { lineHeight: typography.title1.leading, letterSpacing: typography.title1.tracking }],
-              title2: [typography.title2.size + "px", { lineHeight: typography.title2.leading, letterSpacing: typography.title2.tracking }],
-              title3: [typography.title3.size + "px", { lineHeight: typography.title3.leading, letterSpacing: typography.title3.tracking }],
-              body: [typography.body.size + "px", { lineHeight: typography.body.leading, letterSpacing: typography.body.tracking }],
-              callout: [typography.callout.size + "px", { lineHeight: typography.callout.leading, letterSpacing: typography.callout.tracking }],
-              subheadline: [typography.subheadline.size + "px", { lineHeight: typography.subheadline.leading, letterSpacing: typography.subheadline.tracking }],
-              footnote: [typography.footnote.size + "px", { lineHeight: typography.footnote.leading, letterSpacing: typography.footnote.tracking }],
-              caption: [typography.caption.size + "px", { lineHeight: typography.caption.leading, letterSpacing: typography.caption.tracking }],
-            },
-            boxShadow: { card: shadow.card, frame: shadow.frame },
             zIndex: { sticky: String(zIndex.stickyHeader), modal: String(zIndex.modal) },
           },
         },
       };
 
-      // 토큰을 CSS 변수로도 노출한다. 아래 <style> 블록이 여기 값만 참조하고
-      // 별도로 hex를 적지 않는다.
+      // 타이포 역할(크기+굵기+행간+자간 한 세트)은 Tailwind fontSize 튜플이 굵기를 못 담아서
+      // 별도 CSS 클래스로 만든다. text-title-lg 같은 클래스는 페이지에서 font-bold 등으로
+      // 덮어쓰지 않는다(굵게 보여야 하면 역할을 올린다).
+      (function injectTypographyClasses() {
+        const roleToClass = {
+          displayLg: "text-display-lg",
+          titleLg: "text-title-lg",
+          titleMd: "text-title-md",
+          titleSm: "text-title-sm",
+          bodyLg: "text-body-lg",
+          bodyMd: "text-body-md",
+          labelLg: "text-label-lg",
+          labelMd: "text-label-md",
+          labelSm: "text-label-sm",
+          captionMd: "text-caption-md",
+          captionSm: "text-caption-sm",
+        };
+        let css = "";
+        for (const key in roleToClass) {
+          const t = typography[key];
+          css += "." + roleToClass[key] + " { font-size: " + t.size + "px; font-weight: " + t.weight +
+            "; line-height: " + t.leading + "; letter-spacing: " + t.tracking + "; }\n";
+        }
+        const styleEl = document.createElement("style");
+        styleEl.setAttribute("data-source", "tokens.typography");
+        styleEl.textContent = css;
+        document.head.appendChild(styleEl);
+      })();
+
+      // 나머지 전역 CSS가 참조하는 CSS 변수도 여기서 채운다.
       document.documentElement.style.setProperty("--color-background", colors.background);
       document.documentElement.style.setProperty("--color-border", colors.border);
       document.documentElement.style.setProperty("--color-primary", colors.primary);
+      document.documentElement.style.setProperty("--color-surface-sunken", colors.surfaceSunken);
       document.documentElement.style.setProperty("--shadow-frame", shadow.frame);
+      document.documentElement.style.setProperty("--shadow-inset", shadow.inset);
       document.documentElement.style.setProperty("--press-scale", String(motion.pressScale));
       document.documentElement.style.setProperty("--motion-fast", motion.duration.fast + "ms");
       document.documentElement.style.setProperty("--motion-base", motion.duration.base + "ms");
@@ -79,7 +128,7 @@
         max-width: 430px;
         margin: 0 auto;
         min-height: 100vh;
-        background: #fff;
+        background: var(--color-background);
         box-shadow: var(--shadow-frame);
         position: relative;
       }
@@ -96,6 +145,12 @@
       }
       .press:active {
         transform: scale(var(--press-scale));
+      }
+
+      /* 오목한 안쪽 느낌(이너 섀도). 진행률 트랙, 입력칸처럼 눌려 있는 표면에 쓴다 */
+      .inset-well {
+        box-shadow: var(--shadow-inset);
+        background: var(--color-surface-sunken);
       }
 
       /* 키보드 포커스 가시성 */
@@ -116,7 +171,7 @@
         .phone-frame { box-shadow: none; border: 1px solid var(--color-border); }
       }
       @media (prefers-reduced-transparency: reduce) {
-        .backdrop-blur, .bg-white\/20, .bg-black\/40 { backdrop-filter: none !important; }
+        .backdrop-blur { backdrop-filter: none !important; }
       }
     </style>
   </head>
