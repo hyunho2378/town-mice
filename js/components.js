@@ -1,9 +1,8 @@
 // ---------- 아이콘 ----------
 // 스킬 절대 규칙: 이모지 아이콘 금지, lucide-react 또는 inline SVG만.
-// 빌드 도구가 없어 npm의 lucide-react 패키지를 그대로 import할 수 없다(이 환경은
-// Vite/esbuild 네이티브 바이너리가 코드사인 정책에 막힌다). 그래서 규칙이 명시적으로
-// 허용한 다른 경로인 inline SVG로 직접 그린다. lucide와 같은 스타일(24x24, stroke
-// 기반, round cap, 2px)로 통일한다. 크기는 규칙대로 16/20/24/32/48 다섯 단계만 쓴다.
+// 빌드 도구가 없어 npm의 lucide-react 패키지를 그대로 import할 수 없다. 규칙이 명시적으로
+// 허용한 다른 경로인 inline SVG로 직접 그린다. lucide와 같은 스타일(24x24, stroke 기반,
+// round cap, 2px)로 통일한다. 크기는 규칙대로 16/20/24 세 단계만 쓴다.
 function Icon({ name, size = 24, className = "", strokeWidth = 2 }) {
   const common = {
     width: size,
@@ -92,7 +91,7 @@ function Icon({ name, size = 24, className = "", strokeWidth = 2 }) {
 function TopBar({ title, backTo }) {
   const nav = useNav();
   return (
-    <div className="sticky top-0 z-sticky flex items-center h-14 px-2 bg-surface border-b border-border">
+    <div className="sticky top-0 z-sticky flex items-center h-14 px-2 bg-surface border-b border-border shadow-sm">
       <button
         onClick={() => nav.goBack(backTo)}
         className="press tap-target-44 flex items-center justify-center text-text-secondary"
@@ -100,7 +99,7 @@ function TopBar({ title, backTo }) {
       >
         <Icon name="chevronLeft" size={24} />
       </button>
-      <div className="flex-1 text-center font-semibold text-subheadline text-text-primary -ml-11">{title}</div>
+      <div className="flex-1 text-center text-label-lg text-text-primary -ml-11">{title}</div>
     </div>
   );
 }
@@ -117,13 +116,13 @@ function BottomNav() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-sticky">
       <div className="phone-frame !min-h-0 !shadow-none">
-        <div className="grid grid-cols-4 border-t border-border bg-surface">
+        <div className="grid grid-cols-4 border-t border-border bg-surface shadow-[0_-4px_16px_rgba(36,20,24,0.06)]">
           {tabs.map((t) => (
             <button
               key={t.screen}
               onClick={() => nav.replace(t.screen)}
-              className={`press flex flex-col items-center justify-center gap-1 py-2 min-h-[44px] text-caption ${
-                nav.screen === t.screen ? "text-primary font-semibold" : "text-text-tertiary"
+              className={`press flex flex-col items-center justify-center gap-1 py-2 min-h-[44px] text-caption-sm ${
+                nav.screen === t.screen ? "text-primary" : "text-text-tertiary"
               }`}
             >
               <Icon name={t.icon} size={20} />
@@ -136,13 +135,14 @@ function BottomNav() {
   );
 }
 
+// Row: 인증현황 카드의 key-value 한 줄. 라벨은 눕고 값은 굵게, 위계를 굵기 차이로 낸다.
 function Row({ label, value, strong, accent }) {
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-footnote text-text-secondary">{label}</span>
+    <div className="flex items-center justify-between py-1">
+      <span className="text-caption-md text-text-secondary">{label}</span>
       <span
-        className={`${strong ? "text-title3 font-bold text-text-primary" : "text-subheadline font-medium text-text-primary"} ${
-          accent ? "!text-primary !font-bold" : ""
+        className={`${strong ? "text-title-sm" : "text-label-md"} ${
+          accent ? "!text-primary" : "text-text-primary"
         }`}
       >
         {value}
@@ -151,11 +151,12 @@ function Row({ label, value, strong, accent }) {
   );
 }
 
+// Stat: 대행사 화면의 핵심 지표 카드. 숫자가 화면에서 가장 눈에 띄어야 해서 title-md를 쓴다.
 function Stat({ label, value }) {
   return (
-    <div className="bg-surface-muted rounded-lg py-3">
-      <div className="text-caption text-text-tertiary">{label}</div>
-      <div className="text-body font-bold text-text-primary mt-0.5">{value}</div>
+    <div className="bg-surface-sunken shadow-inner rounded-lg py-3 px-2">
+      <div className="text-caption-sm text-text-tertiary">{label}</div>
+      <div className="text-title-md text-text-primary mt-0.5">{value}</div>
     </div>
   );
 }

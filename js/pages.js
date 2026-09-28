@@ -14,9 +14,9 @@ function Splash() {
 
   return (
     <div className="phone-frame flex flex-col items-center justify-center bg-primary text-on-primary">
-      <div className="text-caption tracking-widest opacity-90 mb-2">TOWN MICE × 더픽트</div>
-      <div className="text-large-title font-bold mb-3">화천 PASS</div>
-      <div className="text-callout opacity-90">한 번의 인증으로, 화천을 한 바퀴!</div>
+      <div className="text-caption-md tracking-widest opacity-90 mb-2">TOWN MICE × 더픽트</div>
+      <div className="text-display-lg mb-3">화천 PASS</div>
+      <div className="text-body-lg opacity-90">한 번의 인증으로, 화천을 한 바퀴!</div>
       <div className="mt-10 w-8 h-8 border-2 border-on-primary/40 border-t-on-primary rounded-full animate-spin" />
     </div>
   );
@@ -46,8 +46,8 @@ function Login() {
     return (
       <div className="phone-frame flex flex-col items-center justify-center bg-primary text-on-primary px-8 text-center">
         <Icon name="check" size={48} className="mb-4" />
-        <div className="text-title3 font-semibold">회원가입이 완료되었습니다.</div>
-        <div className="text-footnote opacity-90 mt-2">화천 PASS로 이동합니다</div>
+        <div className="text-title-lg">회원가입이 완료되었습니다.</div>
+        <div className="text-body-md opacity-90 mt-2">화천 PASS로 이동합니다</div>
       </div>
     );
   }
@@ -64,30 +64,30 @@ function Login() {
         </button>
       </div>
       <div className="flex-1 px-6 pt-4">
-        <div className="text-title2 font-bold text-text-primary mb-1">로그인</div>
-        <div className="text-footnote text-text-tertiary mb-8">화천 PASS, Powered by 더픽트</div>
+        <div className="text-title-lg text-text-primary mb-1">로그인</div>
+        <div className="text-caption-md text-text-tertiary mb-10">화천 PASS, Powered by 더픽트</div>
 
         {step === "name" ? (
           <div>
-            <label className="text-caption text-text-tertiary">이름</label>
+            <label className="text-label-sm text-text-secondary">이름</label>
             <input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="이름을 입력해주세요"
-              className="w-full border-b-2 border-border focus:border-primary outline-none py-3 text-body mt-1"
+              className="w-full bg-surface-sunken shadow-inner border border-border-strong rounded-lg px-4 py-3 text-body-lg text-text-primary placeholder:text-text-tertiary focus:border-primary outline-none mt-2"
             />
           </div>
         ) : (
           <div>
-            <label className="text-caption text-text-tertiary">휴대폰 번호</label>
+            <label className="text-label-sm text-text-secondary">휴대폰 번호</label>
             <input
               autoFocus
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="휴대폰 번호를 입력해주세요"
               inputMode="numeric"
-              className="w-full border-b-2 border-border focus:border-primary outline-none py-3 text-body mt-1"
+              className="w-full bg-surface-sunken shadow-inner border border-border-strong rounded-lg px-4 py-3 text-body-lg text-text-primary placeholder:text-text-tertiary focus:border-primary outline-none mt-2"
             />
           </div>
         )}
@@ -96,13 +96,13 @@ function Login() {
         <button
           disabled={!canNext}
           onClick={handleNext}
-          className={`press w-full py-4 min-h-[44px] rounded-xl font-semibold text-body text-on-primary ${
-            canNext ? "bg-primary" : "bg-text-tertiary"
+          className={`press w-full py-4 min-h-[44px] rounded-lg shadow-md text-label-lg text-on-primary ${
+            canNext ? "bg-primary" : "bg-text-tertiary shadow-none"
           }`}
         >
           {step === "name" ? "다음" : "시작하기"}
         </button>
-        <div className="text-caption text-text-tertiary text-center mt-4">
+        <div className="text-caption-sm text-text-tertiary text-center mt-6 leading-relaxed">
           로그인하시면 아래 내용에 동의하는 것으로 간주됩니다
           <br />
           <span className="underline">개인정보처리방침</span> <span className="underline">이용약관</span>
@@ -121,74 +121,74 @@ function Home() {
   const stayProgressFraction = Math.min(1, totalVerifiedAmount / EVENT.thresholdStay);
 
   return (
-    <div className="phone-frame bg-background pb-24">
-      <div className="bg-primary text-on-primary px-5 pt-6 pb-8 rounded-b-3xl">
-        <div className="text-caption opacity-80">Bill Concert × Town MICE</div>
-        <div className="text-title3 font-semibold mt-1">{EVENT.name}</div>
-        <div className="flex items-center justify-between mt-4">
-          <div className="text-footnote opacity-90">{EVENT.ticketNo}</div>
-          <div className="bg-on-primary/20 rounded-full px-3 py-1 text-caption font-semibold">{EVENT.dday}</div>
+    <div className="phone-frame bg-background pb-28">
+      <div className="bg-primary text-on-primary px-5 pt-6 pb-10 rounded-b-xl shadow-md">
+        <div className="text-caption-sm opacity-80">Bill Concert × Town MICE</div>
+        <div className="text-title-md mt-1">{EVENT.name}</div>
+        <div className="flex items-center justify-between mt-5">
+          <div className="text-body-md opacity-90">{EVENT.ticketNo}</div>
+          <div className="bg-on-primary/20 rounded px-2.5 py-1 text-label-sm">{EVENT.dday}</div>
         </div>
-        <div className="text-caption opacity-80 mt-1">{state.user?.name}님 환영합니다</div>
+        <div className="text-caption-md opacity-80 mt-2">{state.user?.name}님 환영합니다</div>
       </div>
 
       {/* 인증현황 카드. Bill Concert 실제 화면 구조를 그대로 따른다 */}
-      <div className="mx-4 -mt-6 bg-surface rounded-2xl shadow-card p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div className="text-subheadline font-semibold text-text-primary">인증현황 ({derived.verified.length})</div>
+      <div className="mx-4 -mt-6 bg-surface rounded-xl shadow-md p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-title-sm text-text-primary">인증현황 ({derived.verified.length})</div>
           <button
             onClick={() => nav.navigate("receiptCategory")}
-            className="press min-h-[44px] px-3 bg-primary text-on-primary rounded-full text-footnote font-semibold"
+            className="press min-h-[44px] px-4 bg-primary text-on-primary rounded-lg shadow-sm text-label-sm"
           >
             영수증 인증하기
           </button>
         </div>
-        <div className="grid grid-cols-1 gap-2">
+        <div className="flex flex-col gap-1">
           <Row label="총 인증 금액" value={won(totalVerifiedAmount)} strong />
           <Row label="1박 누적 목표" value={won(EVENT.thresholdStay) + " (가정)"} />
           <Row label="목표까지 남은 금액" value={won(neededForStay)} accent />
         </div>
-        <div className="mt-3">
-          <div className="w-full h-2 bg-surface-muted rounded-full overflow-hidden">
+        <div className="mt-4">
+          <div className="w-full h-2.5 rounded-full inset-well overflow-hidden">
             {/* width가 아닌 transform: scaleX로 진행률을 표현한다(layout 유발 속성 금지 규칙) */}
             <div
-              className="h-full w-full bg-primary origin-left"
+              className="h-full w-full bg-primary rounded-full origin-left"
               style={{ transform: `scaleX(${stayProgressFraction})`, transition: "transform var(--motion-base) var(--motion-standard)" }}
             />
           </div>
-          <div className="text-caption text-text-tertiary mt-1">
+          <div className="text-caption-md text-text-tertiary mt-2">
             {hasStayReceipt ? "숙박 인증 완료. 1박 코스가 확정됐어요" : "숙박 영수증을 더하면 목표를 쉽게 채워요"}
           </div>
         </div>
       </div>
 
       {/* 화천 권역 스탬프. 동해사이형 진행 로직을 이식했다 */}
-      <div className="mx-4 mt-4 bg-surface rounded-2xl shadow-card p-5">
-        <div className="text-subheadline font-semibold text-text-primary mb-3">화천 권역 스탬프 ({completedRegions}/3)</div>
-        <div className="grid grid-cols-3 gap-2">
+      <div className="mx-4 mt-8 bg-surface rounded-xl shadow-md p-5">
+        <div className="text-title-sm text-text-primary mb-4">화천 권역 스탬프 ({completedRegions}/3)</div>
+        <div className="grid grid-cols-3 gap-3">
           {regionProgress.map((r) => (
             <div
               key={r.id}
-              className={`rounded-xl p-3 text-center border ${
-                r.done ? "bg-accent-soft border-accent" : "bg-surface-muted border-border"
+              className={`rounded-lg p-3 text-center border ${
+                r.done ? "bg-accent-subtle border-accent shadow-sm" : "bg-surface-sunken shadow-inner border-transparent"
               }`}
             >
               <Icon name={r.done ? "award" : "square"} size={20} className={`mx-auto ${r.done ? "text-primary" : "text-text-tertiary"}`} />
-              <div className="text-caption font-semibold mt-1 text-text-primary">{r.name}</div>
+              <div className="text-label-sm text-text-primary mt-1">{r.name}</div>
             </div>
           ))}
         </div>
         <button
           onClick={() => nav.navigate("route")}
-          className="press w-full mt-3 min-h-[44px] text-footnote text-primary font-semibold border border-primary rounded-lg"
+          className="press w-full mt-4 min-h-[44px] text-label-md text-primary border border-primary rounded-lg"
         >
           화천 동선 보러가기
         </button>
       </div>
 
-      <div className="mx-4 mt-4 bg-surface rounded-2xl shadow-card p-5">
-        <div className="text-subheadline font-semibold text-text-primary mb-2">내 티켓 보기</div>
-        <div className="text-footnote text-text-tertiary">목표 달성 시 다음 시즌 체험과 공연 입장 혜택으로 전환됩니다</div>
+      <div className="mx-4 mt-8 bg-surface rounded-xl shadow-md p-5">
+        <div className="text-title-sm text-text-primary mb-2">내 티켓 보기</div>
+        <div className="text-body-md text-text-secondary">목표 달성 시 다음 시즌 체험과 공연 입장 혜택으로 전환됩니다</div>
       </div>
 
       <BottomNav />
@@ -200,25 +200,25 @@ function Home() {
 function ReceiptCategory() {
   const nav = useNav();
   return (
-    <div className="phone-frame bg-surface pb-24">
+    <div className="phone-frame bg-surface pb-28">
       <TopBar title="영수증 인증" backTo="home" />
       <div className="p-5">
-        <div className="text-footnote text-text-tertiary mb-1">01</div>
-        <div className="text-title3 font-semibold text-text-primary mb-5">지출 카테고리를 선택하세요</div>
+        <div className="text-label-sm text-primary mb-2">STEP 01</div>
+        <div className="text-title-lg text-text-primary mb-6">지출 카테고리를 선택하세요</div>
 
         <div className="grid grid-cols-2 gap-3">
           {CATEGORIES.map((c) => (
             <button
               key={c.id}
               onClick={() => nav.navigate("receiptUpload", { categoryId: c.id })}
-              className="press border border-border rounded-xl py-4 min-h-[44px] text-subheadline font-semibold text-text-primary hover:border-primary hover:text-primary hover:bg-primary-soft"
+              className="press border border-border bg-surface-raised rounded-lg py-4 min-h-[44px] shadow-sm text-label-lg text-text-primary hover:border-primary hover:text-primary hover:bg-primary-subtle"
             >
               {c.label}
             </button>
           ))}
         </div>
 
-        <div className="mt-6 bg-surface-muted rounded-xl p-4 text-footnote text-text-secondary leading-relaxed">
+        <div className="mt-8 bg-surface-sunken shadow-inner rounded-lg p-4 text-caption-md text-text-secondary leading-relaxed">
           영수증에 결제일시, 가맹점명, 금액, 주소가 모두 표시되어 있어야 인증이 가능해요.
           <br />
           <span className="text-text-tertiary">인증 불가 사례: 주소가 없는 배달앱 영수증, 배달 전표, 주소가 잘린 캡처본</span>
@@ -244,6 +244,8 @@ function ReceiptUpload() {
   const [showStayNotice, setShowStayNotice] = useState(category.needsAddressProof);
 
   const canSubmit = type && regionId && amount && merchant && fileName;
+  const inputClass =
+    "w-full bg-surface-sunken shadow-inner border border-border-strong rounded-lg px-3 py-2.5 text-body-lg text-text-primary placeholder:text-text-tertiary focus:border-primary outline-none mt-1.5";
 
   const handleFile = (e) => {
     const f = e.target.files && e.target.files[0];
@@ -263,22 +265,22 @@ function ReceiptUpload() {
   };
 
   return (
-    <div className="phone-frame bg-surface pb-28">
+    <div className="phone-frame bg-surface pb-32">
       <TopBar title="영수증 인증" backTo="receiptCategory" />
 
       {showStayNotice && (
         <div className="fixed inset-0 z-modal bg-scrim flex items-end">
           <div className="phone-frame !min-h-0 !shadow-none p-0">
-            <div className="bg-surface rounded-t-2xl p-5">
-              <div className="text-title3 font-semibold text-text-primary mb-2">잠깐, 추가 자료가 필요할 수 있어요</div>
-              <div className="text-subheadline text-text-secondary leading-relaxed mb-4">
+            <div className="bg-surface-raised rounded-t-xl shadow-lg p-6">
+              <div className="text-title-sm text-text-primary mb-2">잠깐, 추가 자료가 필요할 수 있어요</div>
+              <div className="text-body-md text-text-secondary leading-relaxed mb-5">
                 숙박 영수증은 추가 자료가 필요할 수 있어요. 실제 가맹점 주소를 확인할 수 있는 자료를 올려 주세요.
                 <br />
                 증빙자료: 실제 주소가 기입된 예약 내역, 인보이스, 거래명세서 등
               </div>
               <button
                 onClick={() => setShowStayNotice(false)}
-                className="press w-full min-h-[44px] bg-primary text-on-primary rounded-xl py-3 text-body font-semibold"
+                className="press w-full min-h-[44px] bg-primary text-on-primary rounded-lg shadow-md py-3 text-label-lg"
               >
                 확인
               </button>
@@ -287,23 +289,23 @@ function ReceiptUpload() {
         </div>
       )}
 
-      <div className="p-5 space-y-6">
+      <div className="p-5 space-y-8">
         <div>
-          <div className="text-footnote text-text-tertiary mb-1">선택한 카테고리</div>
-          <div className="inline-block bg-primary-soft text-primary text-subheadline font-semibold rounded-full px-3 py-1">
+          <div className="text-caption-md text-text-tertiary mb-2">선택한 카테고리</div>
+          <div className="inline-block bg-primary-subtle text-primary text-label-md rounded-lg px-3 py-1.5">
             {category.label}
           </div>
         </div>
 
         <div>
-          <div className="text-subheadline font-semibold text-text-primary mb-2">영수증 종류</div>
+          <div className="text-title-sm text-text-primary mb-3">영수증 종류</div>
           <div className="grid grid-cols-2 gap-2">
             {RECEIPT_TYPES.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setType(t.id)}
-                className={`press min-h-[44px] rounded-lg text-subheadline font-medium border ${
-                  type === t.id ? "border-primary text-primary bg-primary-soft" : "border-border text-text-secondary"
+                className={`press min-h-[44px] rounded-lg text-label-md border ${
+                  type === t.id ? "border-primary text-primary bg-primary-subtle" : "border-border bg-surface-raised text-text-secondary shadow-sm"
                 }`}
               >
                 {t.label}
@@ -313,53 +315,54 @@ function ReceiptUpload() {
         </div>
 
         <div>
-          <div className="text-subheadline font-semibold text-text-primary mb-2">
-            방문 권역 (영수증 주소 기준 자동 판정, 오늘은 직접 선택)
+          <div className="text-title-sm text-text-primary mb-3">
+            방문 권역
           </div>
+          <div className="text-caption-md text-text-tertiary -mt-2 mb-3">영수증 주소 기준 자동 판정, 오늘은 직접 선택</div>
           <div className="grid grid-cols-1 gap-2">
             {REGIONS.map((r) => (
               <button
                 key={r.id}
                 onClick={() => setRegionId(r.id)}
-                className={`press flex items-center justify-between min-h-[44px] px-3 rounded-lg text-subheadline border ${
-                  regionId === r.id ? "border-primary bg-primary-soft" : "border-border"
+                className={`press flex items-center justify-between min-h-[44px] px-3 rounded-lg border ${
+                  regionId === r.id ? "border-primary bg-primary-subtle" : "border-border bg-surface-raised shadow-sm"
                 }`}
               >
-                <span className="font-medium text-text-primary">{r.name}</span>
-                <span className="text-caption text-text-tertiary">{r.desc}</span>
+                <span className="text-label-md text-text-primary">{r.name}</span>
+                <span className="text-caption-sm text-text-tertiary">{r.desc}</span>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-caption text-text-tertiary">가맹점명</label>
+            <label className="text-label-sm text-text-secondary">가맹점명</label>
             <input
               value={merchant}
               onChange={(e) => setMerchant(e.target.value)}
               placeholder="예: 화천전통시장"
-              className="w-full border-b-2 border-border focus:border-primary outline-none py-2 mt-1 text-body"
+              className={inputClass}
             />
           </div>
           <div>
-            <label className="text-caption text-text-tertiary">결제 금액(원)</label>
+            <label className="text-label-sm text-text-secondary">결제 금액(원)</label>
             <input
               value={amount}
               onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ""))}
               placeholder="예: 35000"
               inputMode="numeric"
-              className="w-full border-b-2 border-border focus:border-primary outline-none py-2 mt-1 text-body"
+              className={inputClass}
             />
           </div>
         </div>
 
         <div>
-          <div className="text-subheadline font-semibold text-text-primary mb-2">영수증 업로드</div>
-          <label className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl py-8 cursor-pointer">
+          <div className="text-title-sm text-text-primary mb-3">영수증 업로드</div>
+          <label className="flex flex-col items-center justify-center bg-surface-sunken shadow-inner border-2 border-dashed border-border-strong rounded-lg py-8 cursor-pointer">
             <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
             <Icon name="plus" size={24} className="text-text-tertiary" />
-            <div className="text-footnote text-text-tertiary mt-2 text-center px-4">
+            <div className="text-caption-md text-text-tertiary mt-2 text-center px-4">
               {fileName || "영수증은 잘 펼쳐서 가려지지 않게 촬영 후 업로드해 주세요"}
             </div>
           </label>
@@ -367,12 +370,12 @@ function ReceiptUpload() {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0">
-        <div className="phone-frame !min-h-0 !shadow-none p-4">
+        <div className="phone-frame !min-h-0 !shadow-none p-4 bg-surface border-t border-border">
           <button
             disabled={!canSubmit}
             onClick={handleSubmit}
-            className={`press w-full py-4 min-h-[44px] rounded-xl font-semibold text-body text-on-primary ${
-              canSubmit ? "bg-primary" : "bg-text-tertiary"
+            className={`press w-full py-4 min-h-[44px] rounded-lg text-label-lg text-on-primary ${
+              canSubmit ? "bg-primary shadow-md" : "bg-text-tertiary"
             }`}
           >
             인증 요청하기
@@ -387,26 +390,26 @@ function ReceiptUpload() {
 function ReceiptStatus() {
   const { state } = useAppState();
   return (
-    <div className="phone-frame bg-background pb-24">
+    <div className="phone-frame bg-background pb-28">
       <TopBar title="인증현황" backTo="home" />
-      <div className="p-4 space-y-3">
+      <div className="p-4 flex flex-col gap-3">
         {state.receipts.length === 0 && (
-          <div className="text-center text-subheadline text-text-tertiary py-16">아직 인증한 영수증이 없어요</div>
+          <div className="text-center text-body-md text-text-tertiary py-16">아직 인증한 영수증이 없어요</div>
         )}
         {state.receipts.map((r) => (
-          <div key={r.id} className="bg-surface rounded-xl p-4 shadow-card flex items-center justify-between">
+          <div key={r.id} className="bg-surface rounded-xl shadow-md p-4 flex items-center justify-between">
             <div>
-              <div className="text-subheadline font-semibold text-text-primary">{r.merchant}</div>
-              <div className="text-caption text-text-tertiary mt-1">
+              <div className="text-title-sm text-text-primary">{r.merchant}</div>
+              <div className="text-caption-md text-text-tertiary mt-1">
                 {findLabel(CATEGORIES, r.category)} 지역 {findLabel(REGIONS, r.regionId, "name")}
               </div>
-              <div className="text-subheadline font-bold text-text-primary mt-1">
+              <div className="text-label-lg text-text-primary mt-1.5">
                 {Number(r.amount).toLocaleString("ko-KR")}원
               </div>
             </div>
             <span
-              className={`text-caption font-semibold px-3 py-1.5 min-h-[28px] flex items-center rounded-full ${
-                r.status === "인증완료" ? "bg-accent-soft text-text-primary" : "bg-surface-muted text-text-tertiary"
+              className={`text-label-sm px-2.5 py-1.5 min-h-[28px] flex items-center rounded ${
+                r.status === "인증완료" ? "bg-accent-subtle text-text-primary" : "bg-surface-sunken shadow-inner text-text-tertiary"
               }`}
             >
               {r.status === "인증완료" ? "인증완료" : "처리중"}
@@ -425,27 +428,27 @@ function RouteMap() {
   const [tapped, setTapped] = useState(null);
 
   return (
-    <div className="phone-frame bg-background pb-24">
+    <div className="phone-frame bg-background pb-28">
       <TopBar title="화천 동선" backTo="home" />
       <div className="p-4">
-        <div className="bg-surface rounded-xl p-4 text-footnote text-text-secondary leading-relaxed mb-4">
+        <div className="bg-surface rounded-xl shadow-sm p-4 text-caption-md text-text-secondary leading-relaxed mb-6">
           영수증 인증은 결제 순간의 위치를 잡아줍니다. 결제가 없는 전망대와 산책로 같은 지점은{" "}
-          <span className="font-semibold text-primary">NFC 태그</span>로 방문을 확인합니다.
+          <span className="text-label-sm text-primary">NFC 태그</span>로 방문을 확인합니다.
         </div>
 
-        {REGIONS.map((region) => {
+        {REGIONS.map((region, idx) => {
           const progress = derived.regionProgress.find((r) => r.id === region.id);
           const spots = NFC_SPOTS.filter((s) => s.regionId === region.id);
           return (
-            <div key={region.id} className="bg-surface rounded-xl p-4 mb-3 shadow-card">
-              <div className="flex items-center justify-between mb-2">
+            <div key={region.id} className={`bg-surface rounded-xl shadow-md p-4 ${idx > 0 ? "mt-4" : ""}`}>
+              <div className="flex items-center justify-between mb-3">
                 <div>
-                  <div className="text-subheadline font-bold text-text-primary">{region.name}</div>
-                  <div className="text-caption text-text-tertiary">{region.desc}</div>
+                  <div className="text-title-sm text-text-primary">{region.name}</div>
+                  <div className="text-caption-md text-text-tertiary">{region.desc}</div>
                 </div>
-                <Icon name="award" size={24} className={progress && progress.done ? "text-primary" : "text-border"} />
+                <Icon name="award" size={24} className={progress && progress.done ? "text-primary" : "text-border-strong"} />
               </div>
-              <div className="space-y-2 mt-2">
+              <div className="flex flex-col gap-2">
                 {spots.map((spot) => {
                   const done = state.taggedSpots.includes(spot.id);
                   return (
@@ -456,15 +459,15 @@ function RouteMap() {
                         setTapped(spot.id);
                         setTimeout(() => setTapped(null), 1500);
                       }}
-                      className={`press w-full flex items-center justify-between min-h-[44px] px-3 rounded-lg border text-subheadline ${
-                        done ? "border-accent bg-accent-soft text-text-primary" : "border-border text-text-secondary"
+                      className={`press w-full flex items-center justify-between min-h-[44px] px-3 rounded-lg border ${
+                        done ? "border-accent bg-accent-subtle text-text-primary" : "border-border bg-surface-raised shadow-sm text-text-secondary"
                       }`}
                     >
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center gap-2 text-label-md">
                         <Icon name="pin" size={16} />
                         {spot.name}
                       </span>
-                      <span className="text-caption font-semibold">
+                      <span className="text-caption-sm font-medium">
                         {tapped === spot.id ? "태그 완료" : done ? "방문 완료" : "NFC 태그하기"}
                       </span>
                     </button>
@@ -500,40 +503,40 @@ function AdminDashboard() {
   const stayCount = verified.filter((v) => v.category === "stay").length;
 
   return (
-    <div className="phone-frame bg-background pb-24">
+    <div className="phone-frame bg-background pb-28">
       <TopBar title="대행사 화천군 리포트" backTo="home" />
-      <div className="p-4 space-y-4">
-        <div className="bg-primary text-on-primary rounded-xl p-4">
-          <div className="text-caption opacity-80">{EVENT.name}</div>
-          <div className="text-footnote mt-1 font-semibold">검증 소비 리포트 (실시간, 시연용 가상 데이터)</div>
+      <div className="p-4 flex flex-col gap-6">
+        <div className="bg-primary text-on-primary rounded-xl shadow-md p-4">
+          <div className="text-caption-sm opacity-80">{EVENT.name}</div>
+          <div className="text-label-md mt-1">검증 소비 리포트 (실시간, 시연용 가상 데이터)</div>
         </div>
 
-        <div className="bg-surface rounded-xl p-4 shadow-card">
-          <div className="text-subheadline font-semibold text-text-primary mb-3">핵심 지표</div>
+        <div className="bg-surface rounded-xl shadow-md p-5">
+          <div className="text-title-sm text-text-primary mb-4">핵심 지표</div>
           <div className="grid grid-cols-2 gap-3 text-center">
             <Stat label="인증 건수" value={verified.length + "건"} />
             <Stat label="총 인증 금액" value={won(derived.totalVerifiedAmount)} />
             <Stat label="축제 권역 밖 소비 비율" value={outsideRatio + "%"} />
             <Stat label="숙박 인증 건수" value={stayCount + "건"} />
           </div>
-          <div className="text-caption text-text-tertiary mt-3">
+          <div className="text-caption-sm text-text-tertiary mt-4">
             실제 서비스에서는 더픽트 인증 API 결과와 NFC 태그 로그를 합산합니다. 지금은 오늘 시연 입력값 기준입니다.
           </div>
         </div>
 
-        <div className="bg-surface rounded-xl p-4 shadow-card">
-          <div className="text-subheadline font-semibold text-text-primary mb-3">권역별 인증 금액</div>
-          {byRegion.map((r) => {
+        <div className="bg-surface rounded-xl shadow-md p-5">
+          <div className="text-title-sm text-text-primary mb-4">권역별 인증 금액</div>
+          {byRegion.map((r, idx) => {
             const frac = derived.totalVerifiedAmount ? r.amount / derived.totalVerifiedAmount : 0;
             return (
-              <div key={r.id} className="mb-2">
-                <div className="flex justify-between text-subheadline mb-1">
+              <div key={r.id} className={idx > 0 ? "mt-3" : ""}>
+                <div className="flex justify-between text-label-md mb-1.5">
                   <span className="text-text-secondary">{r.name}</span>
-                  <span className="font-semibold text-text-primary">{won(r.amount)}</span>
+                  <span className="text-text-primary">{won(r.amount)}</span>
                 </div>
-                <div className="w-full h-2 bg-surface-muted rounded-full overflow-hidden">
+                <div className="w-full h-2.5 rounded-full inset-well overflow-hidden">
                   <div
-                    className="h-full w-full bg-accent origin-left"
+                    className="h-full w-full bg-accent rounded-full origin-left"
                     style={{ transform: `scaleX(${frac})`, transition: "transform var(--motion-base) var(--motion-standard)" }}
                   />
                 </div>
@@ -542,23 +545,23 @@ function AdminDashboard() {
           })}
         </div>
 
-        <div className="bg-surface rounded-xl p-4 shadow-card">
-          <div className="text-subheadline font-semibold text-text-primary mb-2">카테고리별 인증</div>
+        <div className="bg-surface rounded-xl shadow-md p-5">
+          <div className="text-title-sm text-text-primary mb-3">카테고리별 인증</div>
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((c) => {
               const count = verified.filter((v) => v.category === c.id).length;
               if (!count) return null;
               return (
-                <span key={c.id} className="text-caption bg-surface-muted rounded-full px-3 py-1 text-text-secondary">
+                <span key={c.id} className="text-label-sm bg-surface-sunken shadow-inner rounded-lg px-3 py-1.5 text-text-secondary">
                   {c.label} {count}
                 </span>
               );
             })}
-            {verified.length === 0 && <span className="text-caption text-text-tertiary">인증 데이터 없음</span>}
+            {verified.length === 0 && <span className="text-caption-md text-text-tertiary">인증 데이터 없음</span>}
           </div>
         </div>
 
-        <div className="bg-surface rounded-xl p-4 shadow-card text-footnote text-text-secondary leading-relaxed">
+        <div className="bg-surface rounded-xl shadow-sm p-5 text-caption-md text-text-secondary leading-relaxed">
           이 리포트는 축제 대행사가 결과보고서와 다음 입찰 제안서에 쓰는 근거 자료입니다. 화천군은 상품권 환급 예산이
           실제로 어느 상권에서 쓰였는지 확인할 수 있습니다.
         </div>
