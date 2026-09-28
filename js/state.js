@@ -1,4 +1,4 @@
-const { createContext, useContext, useEffect, useState } = React;
+const { createContext, useContext, useState } = React;
 
 // ---------- 간단한 화면 스택 내비게이션 (라우터 라이브러리 없이 구현) ----------
 const NavContext = createContext(null);
@@ -6,12 +6,8 @@ const NavContext = createContext(null);
 function NavProvider({ children }) {
   const [stack, setStack] = useState([{ screen: "splash", params: {} }]);
 
-  const navigate = (screen, params = {}) =>
-    setStack((s) => [...s, { screen, params }]);
-
-  const replace = (screen, params = {}) =>
-    setStack(() => [{ screen, params }]);
-
+  const navigate = (screen, params = {}) => setStack((s) => [...s, { screen, params }]);
+  const replace = (screen, params = {}) => setStack(() => [{ screen, params }]);
   const goBack = (fallback) =>
     setStack((s) => (s.length > 1 ? s.slice(0, -1) : fallback ? [{ screen: fallback, params: {} }] : s));
 
@@ -31,25 +27,15 @@ function useNav() {
 }
 
 // ---------- 앱 상태 (로그인, 영수증, NFC 태그) ----------
+// 스킬 절대 규칙: localStorage/sessionStorage 금지, 인증은 httpOnly 쿠키.
+// 이 프로토타입에는 백엔드가 없어 쿠키 발급이 불가능하다. 그래서 지속성 자체를
+// 포기하고 순수 메모리 상태로만 둔다. 새로고침하면 초기화되는 게 오늘 시연에는
+// 오히려 안전하다(이전 시연 데이터가 남는 문제가 사라진다). 실제 서비스로 갈 때는
+// Node/Express + httpOnly 쿠키로 교체해야 한다(DESIGN.md 참고).
 const AppStateContext = createContext(null);
-const STORAGE_KEY = "townmice-demo-state-v1";
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) {
-    /* ignore */
-  }
-  return { user: null, receipts: initialReceipts, taggedSpots: [] };
-}
 
 function AppStateProvider({ children }) {
-  const [state, setState] = useState(loadState);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+  const [state, setState] = useState({ user: null, receipts: initialReceipts, taggedSpots: [] });
 
   const login = (name, phone) => setState((s) => ({ ...s, user: { name, phone } }));
 
@@ -61,7 +47,7 @@ function AppStateProvider({ children }) {
         ...s.receipts,
       ],
     }));
-    // 시연용: 잠시 후 인증 완료로 자동 전환 (실제로는 더픽트 AI 인증 절차)
+    // 시연용: 잠시 후 인증 완료로 자동 전환한다(실제로는 더픽트 AI 인증 절차).
     setTimeout(() => {
       setState((s) => ({
         ...s,
@@ -75,10 +61,7 @@ function AppStateProvider({ children }) {
   const tagSpot = (spotId) =>
     setState((s) => (s.taggedSpots.includes(spotId) ? s : { ...s, taggedSpots: [...s.taggedSpots, spotId] }));
 
-  const reset = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    setState({ user: null, receipts: initialReceipts, taggedSpots: [] });
-  };
+  const reset = () => setState({ user: null, receipts: initialReceipts, taggedSpots: [] });
 
   const verified = state.receipts.filter((r) => r.status === "인증완료");
   const totalVerifiedAmount = verified.reduce((sum, r) => sum + Number(r.amount || 0), 0);

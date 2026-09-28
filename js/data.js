@@ -10,12 +10,13 @@ const EVENT = {
   thresholdStay: 150000,
 };
 
+// 가운데점 대신 공백으로 붙인 복합 명사(전통시장 특산물, 체험 레저)로 통일한다.
 const CATEGORIES = [
   { id: "stay", label: "숙박", needsAddressProof: true },
-  { id: "market", label: "전통시장·특산물", needsAddressProof: false },
+  { id: "market", label: "전통시장 특산물", needsAddressProof: false },
   { id: "restaurant", label: "음식점", needsAddressProof: false },
-  { id: "mart", label: "마트·편의점", needsAddressProof: false },
-  { id: "experience", label: "체험·레저", needsAddressProof: false },
+  { id: "mart", label: "마트 편의점", needsAddressProof: false },
+  { id: "experience", label: "체험 레저", needsAddressProof: false },
   { id: "etc", label: "기타", needsAddressProof: false },
 ];
 
@@ -24,10 +25,12 @@ const RECEIPT_TYPES = [
   { id: "digital", label: "전자 영수증" },
 ];
 
+// 화천과 하남처럼 두 지명을 가운데점으로 묶던 표기를 버리고, 권역을 하나의 이름(하남권 등)으로
+// 부른 뒤 desc에서 문장으로 풀어 쓴다.
 const REGIONS = [
-  { id: "hwacheon-hanam", name: "화천·하남", desc: "산천어축제, 화천읍 상권" },
-  { id: "gandong", name: "간동", desc: "평화의 댐, 파로호" },
-  { id: "sangseo-sanae", name: "상서·사내", desc: "파크골프장, 비수구미" },
+  { id: "hwacheon-hanam", name: "화천 하남권", desc: "산천어축제, 화천읍 상권" },
+  { id: "gandong", name: "간동권", desc: "평화의 댐, 파로호" },
+  { id: "sangseo-sanae", name: "상서 사내권", desc: "파크골프장, 비수구미" },
 ];
 
 const NFC_SPOTS = [
